@@ -103,11 +103,11 @@ struct _RnkgWindow {
 
   RnkgSpectrumView   *spectrum_view;
   RnkgGenerationView *generation_view;
-  AdwStatusPage      *status_page;
-  GtkStack           *stack;
-  AdwWindowTitle     *title;
-  GtkLabel           *status_line;
-  GtkButton          *reopen;
+  AdwStatusPage *status_page;
+  GtkStack      *stack;
+  GtkLabel      *source_line;
+  GtkLabel      *status_line;
+  GtkButton     *reopen;
 
   SourceParams params;
   SharedState *state;
@@ -301,7 +301,7 @@ window_start_worker (RnkgWindow *self)
   gtk_stack_set_visible_child_name (self->stack, "opening");
   gtk_widget_set_visible (GTK_WIDGET (self->reopen), FALSE);
   gtk_label_set_text (self->status_line, "collecting…");
-  adw_window_title_set_subtitle (self->title, NULL);
+  gtk_label_set_text (self->source_line, "");
 
   if (self->refresh_id == 0)
     self->refresh_id = g_timeout_add (UI_REFRESH_MS, on_refresh, self);
@@ -352,7 +352,7 @@ on_refresh (gpointer data)
     }
 
   if (description != NULL)
-    adw_window_title_set_subtitle (self->title, description);
+    gtk_label_set_text (self->source_line, description);
 
   if (!have_block)
     return G_SOURCE_CONTINUE;
@@ -648,11 +648,7 @@ rnkg_window_init (RnkgWindow *self)
   g_action_map_add_action_entries (G_ACTION_MAP (self), win_actions,
                                    G_N_ELEMENTS (win_actions), self);
 
-  self->title = ADW_WINDOW_TITLE (
-      adw_window_title_new ("Radio Noise Key Generator", NULL));
   header = adw_header_bar_new ();
-  adw_header_bar_set_title_widget (ADW_HEADER_BAR (header),
-                                   GTK_WIDGET (self->title));
 
   menu = g_menu_new ();
   g_menu_append (menu, "_Settings…", "win.settings");
@@ -690,11 +686,18 @@ rnkg_window_init (RnkgWindow *self)
   gtk_stack_add_named (self->stack, GTK_WIDGET (self->status_page), "status");
   gtk_stack_set_visible_child_name (self->stack, "opening");
 
+  /* Footer: what the source is on the left, what it measures on the
+   * right — the header bar stays a plain title. */
+  self->source_line = GTK_LABEL (gtk_label_new (""));
+  gtk_widget_add_css_class (GTK_WIDGET (self->source_line), "dim-label");
+  gtk_label_set_xalign (self->source_line, 0.0);
+  gtk_widget_set_hexpand (GTK_WIDGET (self->source_line), TRUE);
+
   self->status_line = GTK_LABEL (gtk_label_new ("collecting…"));
   gtk_widget_add_css_class (GTK_WIDGET (self->status_line), "dim-label");
   gtk_widget_add_css_class (GTK_WIDGET (self->status_line), "numeric");
   gtk_label_set_wrap (self->status_line, TRUE);
-  gtk_widget_set_hexpand (GTK_WIDGET (self->status_line), TRUE);
+  gtk_label_set_xalign (self->status_line, 1.0);
 
   self->reopen = GTK_BUTTON (gtk_button_new_with_label ("Reopen"));
   gtk_widget_set_visible (GTK_WIDGET (self->reopen), FALSE);
@@ -705,6 +708,7 @@ rnkg_window_init (RnkgWindow *self)
   gtk_widget_set_margin_end (status_row, 12);
   gtk_widget_set_margin_top (status_row, 6);
   gtk_widget_set_margin_bottom (status_row, 6);
+  gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->source_line));
   gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->status_line));
   gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->reopen));
 
