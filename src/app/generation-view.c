@@ -23,11 +23,11 @@ static const char *const alphabet_names[] = {
 struct _RnkgGenerationView {
   GtkBox parent_instance;
 
-  GtkLabel      *candidate;
-  GtkButton     *snap;
-  GtkButton     *copy;
-  GtkSpinButton *length;
-  GtkDropDown   *alphabet;
+  GtkLabel    *candidate;
+  GtkButton   *snap;
+  GtkButton   *copy;
+  GtkScale    *length;
+  GtkDropDown *alphabet;
 
   gboolean snapped;
   guint    clear_id;
@@ -174,9 +174,16 @@ rnkg_generation_view_init (RnkgGenerationView *self)
   controls = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_widget_set_halign (controls, GTK_ALIGN_CENTER);
 
-  self->length = GTK_SPIN_BUTTON (
-      gtk_spin_button_new_with_range (8.0, 64.0, 1.0));
-  gtk_spin_button_set_value (self->length, 20.0);
+  /* A slider, not a spin button — a much longer string should be one
+   * drag, not forty clicks. */
+  self->length = GTK_SCALE (
+      gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL,
+                                8.0, 128.0, 1.0));
+  gtk_range_set_value (GTK_RANGE (self->length), 20.0);
+  gtk_scale_set_digits (self->length, 0);
+  gtk_scale_set_draw_value (self->length, TRUE);
+  gtk_scale_set_value_pos (self->length, GTK_POS_LEFT);
+  gtk_widget_set_size_request (GTK_WIDGET (self->length), 240, -1);
   gtk_box_append (GTK_BOX (controls), GTK_WIDGET (self->length));
 
   self->alphabet = GTK_DROP_DOWN (
@@ -236,5 +243,5 @@ rnkg_generation_view_get_params (RnkgGenerationView *self,
         *alphabet = RNKG_ALPHABET_LETTERS;
     }
   if (length != NULL)
-    *length = (guint) gtk_spin_button_get_value_as_int (self->length);
+    *length = (guint) gtk_range_get_value (GTK_RANGE (self->length));
 }

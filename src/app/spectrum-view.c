@@ -4,8 +4,6 @@
 
 #include "spectrum-view.h"
 
-#include <math.h>
-
 /* Fixed dB range of the plot.  Empty-channel noise on an 8-bit dongle sits
  * around -70 to -80 dB against a full-scale tone, so this keeps both the
  * noise floor and any carrier on screen without autoscaling jumps. */
@@ -109,6 +107,12 @@ draw_func (GtkDrawingArea *area, cairo_t *cr, int width, int height,
   label = g_strdup_printf ("%.3f MHz", self->freq_mhz);
   draw_label (cr, width / 2.0, 14, label);
   g_clear_pointer (&label, g_free);
+
+  /* The receiver's own spur sits exactly here; name it so the one peak
+   * every RTL-SDR shows at the centre does not read as a signal. */
+  cairo_set_source_rgb (cr, 0.45, 0.45, 0.45);
+  cairo_move_to (cr, width / 2.0 + 6, 28);
+  cairo_show_text (cr, "DC");
 
   label = g_strdup_printf ("%.3f", self->freq_mhz - self->rate_msps / 2.0);
   cairo_move_to (cr, 2, height - 4);
