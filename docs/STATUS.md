@@ -55,9 +55,31 @@ unproven. If it was real correlated FM passing under the threshold, the
 design still held: credit is measured per block and the kernel seed is
 mixed in unconditionally. Watch for it during M2's live spectrum work.
 
-**Still open in M1:** DC-spike measurement/offset-tuning decision,
-dongle-pull behaviour (needs a hand on the hardware), NIST reference-tool
-cross-check of the MCV numbers.
+**DC spike, measured — decision: no offset tuning.** Averaged PSD over
+127 MB of the 1300 MHz / gain 49.6 capture: the spur is +35 dB over the
+floor but confined to a single 31 Hz bin (4.8 % of total power), and in
+the time domain it is nothing but a constant −0.13 LSB offset on I and Q —
+exactly the `DC −0.0005` the engine already reports and MCV already
+charges for. Offset tuning would buy back hundredths of a bit per sample
+at the cost of a more complicated source. Strongest non-DC spur: +9.8 dB
+over floor in one bin, negligible.
+
+**NIST reference-tool cross-check** (`ea_non_iid`, SP800-90B_EntropyAssessment
+built 2026-08-19 from git, samples 4M–5M of each capture):
+
+| Capture | our MCV | NIST H_original | NIST H_I (full suite) | our credit (MCV/2) |
+|---|---|---|---|---|
+| 1300 MHz, gain 49.6 | 0.83 | 0.803 | 0.662 | 0.42 |
+| 1300 MHz, gain 12.5 | 0.62 | 0.580 | 0.514 | 0.31 |
+
+Reading: plain MCV tracks NIST's H_original closely (as it should — same
+estimator), the full suite's minimum lands at ~0.8× MCV, and our halving
+margin sits well under that on both operating points. The 0.5 margin is
+now empirically supported on this hardware, not just assumed.
+
+**Still open in M1:** dongle-pull behaviour (needs a hand on the
+hardware); the watchdog timeout path (needs a wedged device); the one
+unexplained 100 MHz pass above.
 
 ## 2026-08-19 — M0 done, no hardware yet
 

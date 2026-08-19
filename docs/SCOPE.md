@@ -64,13 +64,12 @@ tuning), explicit §4.3 startup test (`RNKG_STARTUP_SAMPLES`, gated by
 `rnkg-collect-test`), read watchdog (per-read thread with a deadline; the
 timeout path itself is unverified — it needs a wedged device).
 
+Also resolved 2026-08-19: the DC spike was measured (a single 31 Hz bin,
+a constant −0.13 LSB offset MCV already charges for — STATUS.md has the
+numbers) and the decision is **no offset tuning**.
+
 Still open:
 
-- **DC spike.** The RTL2832U puts a large spur at the centre of the
-  passband. It biases the sample distribution and MCV will see it as reduced
-  min-entropy — which is conservative, so it is not a safety problem, but it
-  may cost real entropy for no reason. Measure first; only then decide
-  whether to offset-tune away from it.
 - **The one unexplained 100 MHz pass.** One live run out of six on an FM
   broadcast generated instead of being rejected; the retune-glitch
   hypothesis is in STATUS.md. Keep an eye out once the M2 spectrum makes
@@ -85,14 +84,14 @@ thresholds hold — empty-channel hardware measures ≤0.005 in the engine's
 own arithmetic, a carrier 0.12–0.18), and wall-clock (a block is ~64 ms;
 no progress bar needed).
 
+The NIST cross-check is done too (2026-08-19, table in STATUS.md): plain
+MCV tracks the tool's H_original, the full-suite minimum lands at ~0.8×
+MCV, and our halved credit sits under all of it on both operating points.
+
 Still to do:
 
 - How the program behaves when the dongle is pulled mid-collection — needs
   a hand on the hardware.
-- A capture through the NIST reference tool
-  ([SP800-90B_EntropyAssessment](https://github.com/usnistgov/SP800-90B_EntropyAssessment)),
-  its min-entropy estimate next to ours. They should be close, and ours
-  should be the lower of the two after the credit margin.
 
 ---
 
@@ -183,6 +182,9 @@ Decisions that are not blocking M1 but should not be forgotten:
   result is halved. Implementing the collision, Markov, compression and
   prediction estimators and taking the minimum — as the standard actually
   requires — would let the 0.5 margin be justified rather than assumed.
+  (The NIST-tool cross-check of 2026-08-19 found the full suite's minimum
+  at ~0.8× MCV on this hardware, so the 0.5 margin has empirical support
+  now; implementing the estimators would make it structural.)
 
 ---
 
