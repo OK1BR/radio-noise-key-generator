@@ -97,9 +97,11 @@ spectrum_test = executable('rnkg-spectrum-test',
 test('spectrum', spectrum_test, timeout : 60)
 
 # --- CLI --------------------------------------------------------------------
+# settings.c is shared with the GUI: the CLI defaults its generation
+# parameters from the same ~/.config ini the GUI writes.  It is GLib-only.
 executable('rnkg',
-  ['src/cli/main.c'],
-  include_directories : engine_inc,
+  ['src/cli/main.c', 'src/app/settings.c'],
+  include_directories : [engine_inc, include_directories('src/app')],
   dependencies : engine_deps,
   link_with : engine_lib,
   install : true,

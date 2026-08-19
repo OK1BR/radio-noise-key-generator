@@ -16,8 +16,11 @@
 
 #include "rnkg-collect.h"
 #include "rnkg-generate.h"
+#include "settings.h"
 
-static gint     opt_length    = 20;
+/* -1 = not given on the command line: the GUI's saved setting applies,
+ * and the built-in default under that. */
+static gint     opt_length    = -1;
 static gint     opt_count     = 1;
 static gint     opt_key_bytes = 0;
 static gchar   *opt_alphabet  = NULL;
@@ -33,11 +36,13 @@ static gboolean opt_list      = FALSE;
 
 static const GOptionEntry entries[] = {
   { "length", 'n', 0, G_OPTION_ARG_INT, &opt_length,
-    "password length in characters (default 20)", "N" },
+    "password length in characters (default: the saved setting, else 20)",
+    "N" },
   { "count", 'c', 0, G_OPTION_ARG_INT, &opt_count,
     "how many passwords to generate (default 1)", "N" },
   { "alphabet", 'a', 0, G_OPTION_ARG_STRING, &opt_alphabet,
-    "letters, alnum, all, hex or base64 (default letters)", "NAME" },
+    "letters, alnum, all, hex or base64 (default: the saved setting, "
+    "else letters)", "NAME" },
   { "key", 'k', 0, G_OPTION_ARG_INT, &opt_key_bytes,
     "emit N bytes of raw key material as hex instead of a password", "N" },
   { "file", 'f', 0, G_OPTION_ARG_FILENAME, &opt_file,
@@ -326,11 +331,28 @@ main (int argc, char **argv)
   if (opt_list)
     return list_devices ();
 
-  if (opt_alphabet != NULL && !rnkg_alphabet_parse (opt_alphabet, &alphabet))
-    {
-      g_printerr ("unknown alphabet '%s'\n", opt_alphabet);
-      return 2;
-    }
+  /* Command line wins; the setting the GUI saved comes next; the
+   * built-in defaults last. */
+  {
+    RnkgAppSettings cfg;
+
+    rnkg_app_settings_load (&cfg);
+    if (opt_alphabet != NULL)
+      {
+        if (!rnkg_alphabet_parse (opt_alphabet, &alphabet))
+          {
+            g_printerr ("unknown alphabet '%s'\n", opt_alphabet);
+            rnkg_app_settings_clear (&cfg);
+            return 2;
+          }
+      }
+    else if (!rnkg_alphabet_parse (cfg.alphabet, &alphabet))
+      alphabet = RNKG_ALPHABET_LETTERS;
+
+    if (opt_length < 0)
+      opt_length = (gint) cfg.length;
+    rnkg_app_settings_clear (&cfg);
+  }
 
   if (opt_length < 1 || opt_count < 1 || opt_key_bytes < 0)
     {
