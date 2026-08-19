@@ -23,11 +23,17 @@ G_BEGIN_DECLS
  * samples before a proportion is worth a confidence interval). */
 #define RNKG_BLOCK_BYTES (256 * 1024)
 
-/* The min-entropy per sample the health tests are configured against.  Well
- * below what a healthy 8-bit RTL-SDR stream measures, because the cutoffs
- * must not fire on a good source; the estimator, not this constant, decides
- * how much entropy is actually credited. */
-#define RNKG_ASSESSED_H 4.0
+/* The min-entropy per sample the health tests are configured against.  Must
+ * sit well below what a healthy stream measures, because the cutoffs must
+ * not fire on a good source; the estimator, not this constant, decides how
+ * much entropy is actually credited.
+ *
+ * Measured 2026-08-19 on an RTL-SDR Blog V4 (R828D) at 1300 MHz: the noise
+ * spans only ~6 ADC codes around the DC offset and MCV gives 0.63–0.83
+ * bits/sample across manual gains — not the >4 bits M0 assumed.  0.3 stays
+ * under the worst healthy measurement while a stuck source still trips the
+ * repetition count at 1 + ceil(20/0.3) = 68 samples (~33 us of stream). */
+#define RNKG_ASSESSED_H 0.3
 
 typedef struct {
   guint64      blocks;

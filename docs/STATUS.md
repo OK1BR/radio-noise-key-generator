@@ -1,5 +1,39 @@
 # Status
 
+## 2026-08-19 — M1 bring-up: first live generation
+
+Hardware: RTL-SDR Blog V4 (R828D tuner), `extra/rtl-sdr` 1:2.0.2-1 installed
+with Richard's go-ahead. Device access works unprivileged via the packaged
+udev rule's `uaccess` ACL — `rfa` did **not** need adding to the `rtlsdr`
+group. The DVB kernel modules (`dvb_usb_rtl28xxu`, `rtl2832`) had grabbed
+the dongle from a pre-install plug and were unloaded manually; the packaged
+blacklist covers future boots.
+
+**Verified live on the dongle:**
+
+- The `HAVE_LIBRTLSDR` branch compiled first try, zero warnings, and
+  `rtlsdr_get_tuner_gains()` really returns ascending values (29 gains,
+  0.0 → 49.6 dB), so `highest_gain()`'s assumption holds on this hardware.
+- End to end from the dongle at 1300 MHz: password and 32-byte key
+  generated, one 256 KiB block credits ~110 kb. Collection is effectively
+  instant — the GUI needs no progress bar for ordinary targets.
+- Live rejection works: tuned to an FM broadcast (100 MHz) the serial
+  correlation test fails the run (serial −0.14) with the retune message.
+  The 0.05 threshold has real margin: the engine measures |serial| ≤ 0.004
+  on empty-channel hardware noise, 0.13–0.18 on a carrier.
+
+**The M0 assumption that fell:** a healthy stream is *not* >4 bits/sample.
+The V4 at 1300 MHz spans only ~6 ADC codes around the DC offset; MCV
+measures 0.62–0.84 bits/sample across manual gains (12.5 → 49.6 dB,
+p_max 0.65 → 0.56). `RNKG_ASSESSED_H` dropped 4.0 → 0.3 — the old value
+made the RCT cutoff (6) fire instantly on real noise. Credited entropy is
+unaffected (the estimator measures per block); a stuck source still trips
+RCT at 68 samples. All 3 gates still green after the change.
+
+**Still open in M1** (SCOPE 1.3/1.4): warm-up discard, explicit startup
+health test, read watchdog, DC-spike measurement/offset-tuning decision,
+dongle-pull behaviour, NIST reference-tool cross-check of the MCV numbers.
+
 ## 2026-08-19 — M0 done, no hardware yet
 
 Engine and CLI are written, build clean at `warning_level=2`, and all three

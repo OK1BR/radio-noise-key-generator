@@ -16,11 +16,12 @@ What is left to build: `docs/SCOPE.md` — the working list, milestone by
 milestone, including the traps already hit here. Status and handover:
 `docs/STATUS.md` — what is verified and what is explicitly not.
 
-**Status (2026-08-19): M0 done, 3/3 gates green (20 tests), nothing pushed
-anywhere.** Verified against sample files only. `extra/rtl-sdr` is not
-installed, so the `HAVE_LIBRTLSDR` branch of `rnkg-source.c` has never been
-compiled — do not describe it as working. M1 starts with installing that
-package, which is a system change and needs Richard's explicit go-ahead.
+**Status (2026-08-19): M1 bring-up done, 3/3 gates green, first live
+generation from the dongle verified (RTL-SDR Blog V4, 1300 MHz), nothing
+pushed anywhere.** Real hardware measures 0.62–0.84 bits/sample, not the
+>4 M0 assumed — `RNKG_ASSESSED_H` is 0.3 now; see `docs/STATUS.md` for the
+measurements. Still open in M1: warm-up discard, explicit startup health
+test, read watchdog, DC-spike decision, NIST cross-check.
 
 ## Four rules that override convenience
 
