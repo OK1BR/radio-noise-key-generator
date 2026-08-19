@@ -18,6 +18,8 @@ add_project_arguments('-DRNKG_VERSION="@0@"'.format(meson.project_version()),
 glib_dep   = dependency('glib-2.0')
 gcrypt_dep = dependency('libgcrypt')   # SHAKE-256, secure memory
 m_dep      = meson.get_compiler('c').find_library('m')
+gtk_dep    = dependency('gtk4')             # M2: front end
+adw_dep    = dependency('libadwaita-1')     # M2: front end
 
 # librtlsdr is optional on purpose: everything except the dongle source
 # builds and tests without it, which is how the health tests and the
@@ -40,6 +42,7 @@ engine_sources = [
   'src/engine/rnkg-generate.c',  # rejection sampling into an alphabet
   'src/engine/rnkg-source.c',    # RTL-SDR and file sources
   'src/engine/rnkg-collect.c',   # the collection loop both front ends drive
+  'src/engine/rnkg-spectrum.c',  # display-only FFT for the spectrum view
 ]
 engine_deps = [glib_dep, gcrypt_dep, m_dep, rtlsdr_dep]
 
@@ -85,6 +88,14 @@ generate_test = executable('rnkg-generate-test',
 )
 test('generate', generate_test, timeout : 60)
 
+spectrum_test = executable('rnkg-spectrum-test',
+  ['src/spectrum_test.c'],
+  include_directories : engine_inc,
+  dependencies : engine_deps,
+  link_with : engine_lib,
+)
+test('spectrum', spectrum_test, timeout : 60)
+
 # --- CLI --------------------------------------------------------------------
 executable('rnkg',
   ['src/cli/main.c'],
@@ -94,4 +105,15 @@ executable('rnkg',
   install : true,
 )
 
-# The GTK4 front end lands here once the engine is settled; see docs/SPEC.md.
+# --- GTK4/libadwaita front end (M2) -----------------------------------------
+executable('radio-noise-key-generator',
+  [
+    'src/app/main.c',
+    'src/app/window.c',
+    'src/app/spectrum-view.c',
+  ],
+  include_directories : engine_inc,
+  dependencies : engine_deps + [gtk_dep, adw_dep],
+  link_with : engine_lib,
+  install : true,
+)
