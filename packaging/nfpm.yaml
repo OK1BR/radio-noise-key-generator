@@ -7,7 +7,7 @@
 #   RNKG_VERSION=x.y.z nfpm package -f packaging/nfpm.yaml -p rpm -t dist/
 #
 # Dependency names follow the family's packaging (sdr/skimmer, verified
-# against Ubuntu 24.04/Debian 13 and Fedora 40+); librtlsdr2 checked against
+# against Ubuntu 24.04/Debian 13 and Fedora 41+); librtlsdr2 checked against
 # the Ubuntu noble index 2026-08-19. CI install-tests both packages in fresh
 # containers and ldd-checks both binaries before a release artifact is
 # attached, so a renamed distro package fails the pipeline instead of the
@@ -57,10 +57,11 @@ overrides:
       - libgcrypt20
       - librtlsdr2
   rpm:
-    # Fedora 40+
+    # Fedora 41+ — F40 still ships librtlsdr 0.6 (librtlsdr.so.0), the
+    # binary needs the 2.x soname; the container install-test proved it.
     depends:
       - gtk4
       - libadwaita >= 1.5
       - glib2
       - libgcrypt
-      - rtl-sdr
+      - rtl-sdr >= 2.0
