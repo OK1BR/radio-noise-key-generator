@@ -1,0 +1,11 @@
+<svg width="16" height="16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <!-- Radio Noise Key Generator — symbolic: a key hanging through the
+      noise line, bitting down -->
+ <path d="M1 7.5 L3 8.5 L5 6.5 L7 8.5 L9 7 L11 8.5 L13 6.5 L15 7.5"
+       style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.4;stroke:#2e3436"/>
+ <g style="fill:#2e3436">
+  <path fill-rule="evenodd"
+        d="M8 1.1a2.9 2.9 0 1 0 .001 5.8A2.9 2.9 0 0 0 8 1.1zm0 1.5a1.05 1.05 0 1 1-.001 2.1A1.05 1.05 0 0 1 8 2.6z"/>
+  <path d="M6.9 6.5 H9.1 V9.5 L8.2 10.1 L9.1 10.7 V11.7 L8.2 12.3 L9.1 12.9 V13.4 L8 14.9 L6.9 13.6 Z"/>
+ </g>
+</svg>

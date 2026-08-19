@@ -1,0 +1,24 @@
+<svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <!-- Radio Noise Key Generator — Papirus-style icon: dark plate, a key
+      hanging through the noise line, bitting down.  Construction and
+      palette follow the Papirus icon set conventions, matching the rest
+      of the family. -->
+ <rect x="6" y="8" width="52" height="48" rx="3.319149" ry="3" style="opacity:.2"/>
+ <rect x="6" y="7" width="52" height="48" rx="3.319149" ry="3" style="fill:#4f4f4f"/>
+ <path d="m9.3183594 7c-1.8388086 0-3.3183594 1.338-3.3183594 3v1c0-1.662 1.4795508-3 3.3183594-3h45.363282c1.838808 0 3.318359 1.338 3.318359 3v-1c0-1.662-1.479551-3-3.318359-3h-45.363282z" style="fill:#ffffff;opacity:.1"/>
+ <path d="M3 31 L6 33 L9 29 L12 34 L15 30 L18 33 L21 28 L24 34 L27 31 L30 29 L33 33 L36 30 L39 34 L42 29 L45 32 L48 28 L51 33 L54 30 L58 32 L61 31"
+       transform="translate(0 1)"
+       style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:4;stroke:#000000;opacity:.2"/>
+ <path d="M3 31 L6 33 L9 29 L12 34 L15 30 L18 33 L21 28 L24 34 L27 31 L30 29 L33 33 L36 30 L39 34 L42 29 L45 32 L48 28 L51 33 L54 30 L58 32 L61 31"
+       style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:4;stroke:#ffffff"/>
+ <g transform="translate(0 1) rotate(10 32 30)" style="fill:#000000;opacity:.2">
+  <circle cx="32" cy="15.5" r="10.5"/>
+  <path d="M28 23 H36 V33 L33 35 L36 37 V40 L33 42 L36 44 V48.5 L32 54 L28 50 Z"/>
+ </g>
+ <g transform="rotate(10 32 30)">
+  <circle cx="32" cy="15.5" r="10.5" style="fill:#2196f3"/>
+  <path d="M28 23 H36 V33 L33 35 L36 37 V40 L33 42 L36 44 V48.5 L32 54 L28 50 Z"
+        style="fill:#2196f3"/>
+  <circle cx="32" cy="13.5" r="3.5" style="fill:#4f4f4f"/>
+ </g>
+</svg>

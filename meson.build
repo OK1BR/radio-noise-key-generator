@@ -8,6 +8,8 @@ project('radio-noise-key-generator', 'c',
   ],
 )
 
+gnome = import('gnome')  # used in data/ for post-install icon/desktop DB refresh
+
 add_project_arguments('-D_GNU_SOURCE', language : 'c')
 add_project_arguments('-DRNKG_VERSION="@0@"'.format(meson.project_version()),
                       language : 'c')
@@ -129,3 +131,5 @@ executable('radio-noise-key-generator',
   link_with : engine_lib,
   install : true,
 )
+
+subdir('data')   # .desktop + icons + AppStream metainfo (install only)

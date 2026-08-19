@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>cz.ok1br.radio_noise_key_generator</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Radio Noise Key Generator</name>
+  <summary>Passwords and keys from RTL-SDR radio noise</summary>
+  <description>
+    <p>
+      A native GTK4/libadwaita application and command line tool that
+      generates passwords and keys of any length from radio noise picked up
+      by an RTL-SDR dongle — with the entropy measured, not assumed. A small
+      spectrum strip shows the frequency is really empty, one status line
+      shows the live measurements, and a fresh candidate password rotates
+      with every healthy block until you snap it.
+    </p>
+    <p>
+      Every block of samples must pass the continuous health tests of NIST
+      SP 800-90B (repetition count, adaptive proportion) plus serial and I/Q
+      correlation tests before it is credited with anything, and the credit
+      is the measured min-entropy of that block, halved. Conditioning is
+      SHAKE-256, and 64 bytes from the kernel's getrandom() are mixed into
+      every derivation unconditionally — the output can never be weaker than
+      the kernel's own generator, whatever the dongle hands over. The radio
+      can only add.
+    </p>
+    <p>
+      The rnkg command line tool drives the same engine for scripts: plain
+      generation, raw key material as hex, capture replay with every
+      measurement reported, and a scriptable snap that rotates candidates
+      until a timer fires or stdin closes.
+    </p>
+  </description>
+  <developer id="cz.ok1br">
+    <name>Richard Fakenberg, OK1BR</name>
+  </developer>
+  <launchable type="desktop-id">cz.ok1br.radio_noise_key_generator.desktop</launchable>
+  <url type="homepage">https://github.com/OK1BR/radio-noise-key-generator</url>
+  <url type="bugtracker">https://github.com/OK1BR/radio-noise-key-generator/issues</url>
+  <url type="vcs-browser">https://github.com/OK1BR/radio-noise-key-generator</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/OK1BR/radio-noise-key-generator/main/docs/img/main-window.png</image>
+      <caption>Live rotation on an empty channel, spectrum strip above</caption>
+    </screenshot>
+  </screenshots>
+  <categories>
+    <category>Utility</category>
+    <category>Security</category>
+    <category>HamRadio</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-08-19">
+      <description>
+        <p>
+          First release: the SP 800-90B health-tested collection engine with
+          per-block measured entropy credit, SHAKE-256 conditioning with the
+          unconditional kernel seed, rejection-sampled alphabets, the GTK
+          window with spectrum strip and live candidate rotation, and the
+          rnkg CLI with capture replay and scriptable snap. Measurements
+          cross-checked against the NIST reference tool on real captures
+          from an RTL-SDR Blog V4.
+        </p>
+      </description>
+    </release>
+  </releases>
+</component>

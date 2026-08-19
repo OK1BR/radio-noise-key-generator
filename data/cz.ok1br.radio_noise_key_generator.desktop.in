@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Radio Noise Key Generator
+Comment=Passwords and keys from RTL-SDR radio noise
+Comment[cs]=Hesla a klíče z rádiového šumu RTL-SDR
+Exec=@bindir@/radio-noise-key-generator
+Icon=cz.ok1br.radio_noise_key_generator
+Terminal=false
+Categories=Utility;Security;HamRadio;
+Keywords=password;key;entropy;random;RNG;TRNG;noise;RTL-SDR;SDR;ham;radio;security;generator;
+Keywords[cs]=heslo;klíč;entropie;náhoda;šum;generátor;
+StartupNotify=true
+StartupWMClass=cz.ok1br.radio_noise_key_generator
