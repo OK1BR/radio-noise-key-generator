@@ -88,6 +88,21 @@ after tuning is startup evidence, never material.
   down bluntly in [`docs/STATUS.md`](docs/STATUS.md); the design contract
   is [`docs/SPEC.md`](docs/SPEC.md).
 
+## Hardware
+
+Any dongle librtlsdr can open should work — the entropy is measured per
+block, never assumed from the hardware model. Developed and verified on the
+[RTL-SDR Blog V4](https://www.rtl-sdr.com/V4/) (R828D tuner) from
+[rtl-sdr.com](https://www.rtl-sdr.com/); the credit margin and the numbers
+in the table above were measured on that dongle. On Arch the packaged
+`extra/rtl-sdr` (2.0.2) runs the V4 out of the box, including the udev rule
+that makes the device accessible without root or group changes. Numbers
+from other tuners are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The noise collected at the default 1300 MHz is dominated by the receiver's
+own thermal floor (see [`docs/SPEC.md`](docs/SPEC.md) §4) — the antenna's
+job is only to let the spectrum strip show you the channel is really empty.
+
 ## Build
 
 ```
