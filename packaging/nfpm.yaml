@@ -1,0 +1,66 @@
+# nfpm configuration — builds the .deb and .rpm attached to GitHub releases.
+# Run from the repo root after staging a release build:
+#   meson setup build-pkg --buildtype=release --prefix=/usr
+#   meson compile -C build-pkg
+#   DESTDIR=$PWD/build-pkg/staging meson install -C build-pkg
+#   RNKG_VERSION=x.y.z nfpm package -f packaging/nfpm.yaml -p deb -t dist/
+#   RNKG_VERSION=x.y.z nfpm package -f packaging/nfpm.yaml -p rpm -t dist/
+#
+# Dependency names follow the family's packaging (sdr/skimmer, verified
+# against Ubuntu 24.04/Debian 13 and Fedora 40+); librtlsdr2 checked against
+# the Ubuntu noble index 2026-08-19. CI install-tests both packages in fresh
+# containers and ldd-checks both binaries before a release artifact is
+# attached, so a renamed distro package fails the pipeline instead of the
+# user.
+
+name: radio-noise-key-generator
+arch: amd64
+platform: linux
+version: ${RNKG_VERSION}
+section: hamradio
+priority: optional
+maintainer: Richard Fakenberg <rifak@protonmail.com>
+vendor: OK1BR
+homepage: https://github.com/OK1BR/radio-noise-key-generator
+license: GPL-3.0-or-later
+description: |
+  Passwords and keys from RTL-SDR radio noise.
+  Native GTK4/libadwaita application and CLI tool. Every block of samples
+  must pass the continuous health tests of NIST SP 800-90B plus serial and
+  I/Q correlation tests before it is credited with its measured min-entropy,
+  halved; conditioning is SHAKE-256 and 64 bytes from getrandom() are mixed
+  into every derivation unconditionally, so the output is never weaker than
+  the kernel's own generator. The radio can only add.
+
+contents:
+  - src: build-pkg/staging/usr/bin/radio-noise-key-generator
+    dst: /usr/bin/radio-noise-key-generator
+  - src: build-pkg/staging/usr/bin/rnkg
+    dst: /usr/bin/rnkg
+  - src: build-pkg/staging/usr/share/applications/cz.ok1br.radio_noise_key_generator.desktop
+    dst: /usr/share/applications/cz.ok1br.radio_noise_key_generator.desktop
+  - src: build-pkg/staging/usr/share/icons/hicolor/scalable/apps/cz.ok1br.radio_noise_key_generator.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/cz.ok1br.radio_noise_key_generator.svg
+  - src: build-pkg/staging/usr/share/icons/hicolor/symbolic/apps/cz.ok1br.radio_noise_key_generator-symbolic.svg
+    dst: /usr/share/icons/hicolor/symbolic/apps/cz.ok1br.radio_noise_key_generator-symbolic.svg
+  - src: build-pkg/staging/usr/share/metainfo/cz.ok1br.radio_noise_key_generator.metainfo.xml
+    dst: /usr/share/metainfo/cz.ok1br.radio_noise_key_generator.metainfo.xml
+
+overrides:
+  deb:
+    # Ubuntu 24.04+ / Debian 13+ (the t64 names post 64-bit time_t transition)
+    depends:
+      - libc6 (>= 2.39)
+      - libgtk-4-1
+      - libadwaita-1-0 (>= 1.5)
+      - libglib2.0-0t64
+      - libgcrypt20
+      - librtlsdr2
+  rpm:
+    # Fedora 40+
+    depends:
+      - gtk4
+      - libadwaita >= 1.5
+      - glib2
+      - libgcrypt
+      - rtl-sdr
