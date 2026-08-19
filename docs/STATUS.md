@@ -1,5 +1,23 @@
 # Status
 
+## 2026-08-19 — M2 begun: the live spectrum works
+
+The FFT decision fell to a plain radix-2 written into the engine
+(`rnkg-spectrum.c`, display-only, zero new dependencies; `sdr-for-linux`'s
+FFTW is WDSP's requirement, not a family convention worth importing). A
+fifth gate pins it against a naive DFT. `src/app/` holds the AdwApplication
+bootstrap, a window reading the dongle on a worker thread, and the spectrum
+view: black, white live trace, dim peak hold, dB grid, tuning marker.
+
+**Verified live, including by eye:** Richard confirmed the rendered
+spectrum on the real dongle — noise floor around −75 dB, the DC spur in
+the centre, the 1300.000 MHz marker. 5/5 gates green, zero warnings, the
+app opens/reads/exits cleanly (`RNKG_AUTOCLOSE_MS` hook).
+
+**Not built yet** (SCOPE 2.3–2.4): source panel, health panel, entropy
+counter, generation panel — and the secrets-in-UI decision that gates the
+generation panel.
+
 ## 2026-08-19 — M1 bring-up: first live generation
 
 Hardware: RTL-SDR Blog V4 (R828D tuner), `extra/rtl-sdr` 1:2.0.2-1 installed
