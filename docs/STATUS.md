@@ -17,9 +17,10 @@ top; an attacker has to break both sources at once. Three findings, fixed:
   a new no-hardware gate (`cli-snap`) pins the CLI path. 6/6 gates.
 - **The GUI worker's sample buffer moved to gcry secure memory** (it was
   plain heap and never wiped); it is wiped and freed on worker exit, like
-  the CLI's. The GUI code path compiles and the app was not exercised
-  live for this change — the visible behaviour difference is one extra
-  block (~0.13 s) before the first candidate appears.
+  the CLI's. Verified live on the dongle after the change, including by
+  Richard's eye — rotation, snap and a worker restart all clean; the only
+  visible difference is one extra block (~0.13 s) before the first
+  candidate appears.
 - **SPEC §1 now states the computational ceiling:** nominal strengths
   above ~256 bits are capped by SHAKE-256's generic security — the extra
   credited bits buy margin, not a bigger number.
