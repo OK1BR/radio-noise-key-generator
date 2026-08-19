@@ -25,6 +25,13 @@ top; an attacker has to break both sources at once. Three findings, fixed:
   above ~256 bits are capped by SHAKE-256's generic security — the extra
   credited bits buy margin, not a bigger number.
 
+Also verified live the same evening, by Richard's eye: starting the app
+with no dongle attached shows the error page after the open retries
+(~3 s), and plugging the dongle back in plus Reopen recovers cleanly —
+fresh worker, fresh health state, rotation running. Clean exit, no crash.
+(This is the no-device open path; the watchdog *timeout* path still needs
+a silently wedged device.)
+
 ## 2026-08-19 end of day — where this stands, for the next session
 
 M0 + M1 done, M2 essentially done. The window matches SPEC §8 after
