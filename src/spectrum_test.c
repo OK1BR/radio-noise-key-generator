@@ -49,24 +49,38 @@ test_fft_matches_dft (void)
       wsum += window[i];
     }
 
-  for (guint k = 0; k < N; k++)
-    {
-      double sr = 0.0, si = 0.0;
+  {
+    double mean_re = 0.0, mean_im = 0.0;
 
-      for (guint n = 0; n < N; n++)
-        {
-          const double xr = (iq[2 * n]     - 127.5) / 127.5 * window[n];
-          const double xi = (iq[2 * n + 1] - 127.5) / 127.5 * window[n];
-          const double c  = cos (-2.0 * G_PI * k * (double) n / N);
-          const double sn = sin (-2.0 * G_PI * k * (double) n / N);
+    for (guint n = 0; n < N; n++)
+      {
+        mean_re += (iq[2 * n]     - 127.5) / 127.5;
+        mean_im += (iq[2 * n + 1] - 127.5) / 127.5;
+      }
+    mean_re /= N;
+    mean_im /= N;
 
-          sr += xr * c - xi * sn;
-          si += xr * sn + xi * c;
-        }
+    for (guint k = 0; k < N; k++)
+      {
+        double sr = 0.0, si = 0.0;
 
-      re[k] = sr;
-      im[k] = si;
-    }
+        for (guint n = 0; n < N; n++)
+          {
+            const double xr =
+                ((iq[2 * n]     - 127.5) / 127.5 - mean_re) * window[n];
+            const double xi =
+                ((iq[2 * n + 1] - 127.5) / 127.5 - mean_im) * window[n];
+            const double c  = cos (-2.0 * G_PI * k * (double) n / N);
+            const double sn = sin (-2.0 * G_PI * k * (double) n / N);
+
+            sr += xr * c - xi * sn;
+            si += xr * sn + xi * c;
+          }
+
+        re[k] = sr;
+        im[k] = si;
+      }
+  }
 
   for (guint k = 0; k < N; k++)
     {
@@ -105,10 +119,11 @@ test_tone_lands_in_bin (void)
       g_assert_cmpfloat (s.psd_db[i], <, s.psd_db[peak_at] - 30.0);
 }
 
-/* Pure DC (constant bytes) is the RTL2832U's centre spur: it must show in
- * the middle bin and nowhere else. */
+/* Pure DC (constant bytes) is the RTL2832U's own offset, not a signal —
+ * the display subtracts it, so a constant input must show nothing at all,
+ * centre bin included. */
 static void
-test_dc_is_centred (void)
+test_dc_is_removed (void)
 {
   g_autofree guint8 *iq = g_malloc (2 * 2 * N);
   RnkgSpectrum s;
@@ -118,11 +133,8 @@ test_dc_is_centred (void)
   rnkg_spectrum_init (&s);
   rnkg_spectrum_update (&s, iq, 2 * 2 * N);
 
-  /* The Hann window leaks into the two neighbouring bins (about -6 dB);
-   * everything beyond them must be far down. */
   for (guint i = 0; i < N; i++)
-    if (i + 1 < N / 2 || i > N / 2 + 1)
-      g_assert_cmpfloat (s.psd_db[i], <, s.psd_db[N / 2] - 40.0);
+    g_assert_cmpfloat (s.psd_db[i], <, -100.0);
 }
 
 /* Peak hold keeps the maximum across updates and forgets it on reset. */
@@ -156,7 +168,7 @@ main (int argc, char **argv)
 
   g_test_add_func ("/spectrum/fft-matches-dft", test_fft_matches_dft);
   g_test_add_func ("/spectrum/tone-lands-in-bin", test_tone_lands_in_bin);
-  g_test_add_func ("/spectrum/dc-is-centred", test_dc_is_centred);
+  g_test_add_func ("/spectrum/dc-is-removed", test_dc_is_removed);
   g_test_add_func ("/spectrum/peak-hold", test_peak_hold);
 
   return g_test_run ();

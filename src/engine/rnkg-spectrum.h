@@ -20,7 +20,10 @@ G_BEGIN_DECLS
 typedef struct {
   /* Welch-averaged periodogram over the pushed block, Hann windowed,
    * fftshifted so the centre frequency sits at bin RNKG_SPECTRUM_BINS/2.
-   * dB relative to a full-scale tone; empty-channel noise sits far down. */
+   * dB relative to a full-scale tone; empty-channel noise sits far down.
+   * Each frame has its mean subtracted first, so the receiver's own DC
+   * offset does not stand as a spur on the tuned frequency — display
+   * hygiene only, the entropy path sees the raw samples. */
   double psd_db[RNKG_SPECTRUM_BINS];
 
   /* Peak hold across pushes, same scale, until _reset_peak(). */
