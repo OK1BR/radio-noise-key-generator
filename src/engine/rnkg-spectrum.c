@@ -95,30 +95,34 @@ rnkg_spectrum_update (RnkgSpectrum *s, const guint8 *iq, gsize len)
       wsum += window[i];
     }
 
+  /* Subtract the mean of the WHOLE block, not of each frame: the block
+   * mean is the receiver's constant DC offset, which would otherwise
+   * stand as a spur on the tuned frequency.  Per-frame subtraction
+   * would null the centre bin exactly — noise and all — and leave a
+   * notch instead; against the block mean each frame keeps its own
+   * fluctuation, so the centre shows the same noise as its neighbours.
+   * Display hygiene only — the entropy path sees the raw samples,
+   * offset included, and MCV charges for it. */
+  {
+    double mean_re = 0.0, mean_im = 0.0;
+
+    for (gsize n = 0; n < frames * N; n++)
+      {
+        mean_re += (iq[2 * n]     - 127.5) / 127.5;
+        mean_im += (iq[2 * n + 1] - 127.5) / 127.5;
+      }
+    mean_re /= (double) (frames * N);
+    mean_im /= (double) (frames * N);
+
   for (gsize f = 0; f < frames; f++)
     {
       const guint8 *p = iq + f * 2 * N;
       double re[N], im[N];
-      double mean_re = 0.0, mean_im = 0.0;
 
       for (guint i = 0; i < N; i++)
         {
-          re[i] = (p[2 * i]     - 127.5) / 127.5;
-          im[i] = (p[2 * i + 1] - 127.5) / 127.5;
-          mean_re += re[i];
-          mean_im += im[i];
-        }
-      mean_re /= N;
-      mean_im /= N;
-
-      /* Subtract the frame mean before windowing: the receiver's own DC
-       * offset would otherwise stand as a spur on the tuned frequency.
-       * This is display hygiene only — the entropy path sees the raw
-       * samples, offset included, and MCV charges for it. */
-      for (guint i = 0; i < N; i++)
-        {
-          re[i] = (re[i] - mean_re) * window[i];
-          im[i] = (im[i] - mean_im) * window[i];
+          re[i] = ((p[2 * i]     - 127.5) / 127.5 - mean_re) * window[i];
+          im[i] = ((p[2 * i + 1] - 127.5) / 127.5 - mean_im) * window[i];
         }
 
       fft_radix2 (re, im);
@@ -126,6 +130,7 @@ rnkg_spectrum_update (RnkgSpectrum *s, const guint8 *iq, gsize len)
       for (guint i = 0; i < N; i++)
         power[i] += re[i] * re[i] + im[i] * im[i];
     }
+  }
 
   /* Normalise so a full-scale complex tone reads 0 dB regardless of the
    * window: such a tone leaves sum(window)^2 in its bin per frame. */

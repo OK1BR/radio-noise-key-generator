@@ -4,11 +4,13 @@
 
 #include "spectrum-view.h"
 
-/* Fixed dB range of the plot.  Empty-channel noise on an 8-bit dongle sits
- * around -70 to -80 dB against a full-scale tone, so this keeps both the
- * noise floor and any carrier on screen without autoscaling jumps. */
-#define DB_TOP    0.0
-#define DB_BOTTOM -110.0
+#include <math.h>
+
+/* The axis follows the live trace (smoothed, minimum span 20 dB), so
+ * empty-channel noise fills the strip as a visibly fizzing line instead
+ * of lying flat at the bottom of a fixed 110 dB range. */
+#define SPAN_MIN_DB   20.0
+#define RANGE_SMOOTH  0.25   /* per update, toward the target range */
 
 struct _RnkgSpectrumView {
   GtkDrawingArea parent_instance;
@@ -16,25 +18,29 @@ struct _RnkgSpectrumView {
   RnkgSpectrum spectrum;
   double       freq_mhz;
   double       rate_msps;
+  double       view_top;
+  double       view_bottom;
 };
 
 G_DEFINE_FINAL_TYPE (RnkgSpectrumView, rnkg_spectrum_view, GTK_TYPE_DRAWING_AREA)
 
 static double
-db_to_y (double db, int height)
+db_to_y (RnkgSpectrumView *self, double db, int height)
 {
-  const double t = (DB_TOP - db) / (DB_TOP - DB_BOTTOM);
+  const double t = (self->view_top - db)
+                 / (self->view_top - self->view_bottom);
 
   return CLAMP (t, 0.0, 1.0) * height;
 }
 
 static void
-draw_trace (cairo_t *cr, const double *db, int width, int height)
+draw_trace (RnkgSpectrumView *self, cairo_t *cr, const double *db,
+            int width, int height)
 {
   for (guint i = 0; i < RNKG_SPECTRUM_BINS; i++)
     {
       const double x = (double) i / (RNKG_SPECTRUM_BINS - 1) * width;
-      const double y = db_to_y (db[i], height);
+      const double y = db_to_y (self, db[i], height);
 
       if (i == 0)
         cairo_move_to (cr, x, y);
@@ -71,23 +77,29 @@ draw_func (GtkDrawingArea *area, cairo_t *cr, int width, int height,
                           CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
   cairo_set_font_size (cr, 11.0);
 
-  /* dB grid. */
+  /* dB grid: lines on multiples of a step chosen from the visible span. */
   cairo_set_line_width (cr, 1.0);
-  for (double db = DB_TOP; db >= DB_BOTTOM; db -= 20.0)
-    {
-      const double y = db_to_y (db, height);
+  {
+    const double span = self->view_top - self->view_bottom;
+    const double step = span <= 25.0 ? 5.0 : span <= 50.0 ? 10.0 : 20.0;
+    double       db   = step * floor (self->view_top / step);
 
-      cairo_set_source_rgb (cr, 0.18, 0.18, 0.18);
-      cairo_move_to (cr, 0, y);
-      cairo_line_to (cr, width, y);
-      cairo_stroke (cr);
+    for (; db >= self->view_bottom; db -= step)
+      {
+        const double y = db_to_y (self, db, height);
 
-      cairo_set_source_rgb (cr, 0.45, 0.45, 0.45);
-      label = g_strdup_printf ("%.0f", db);
-      cairo_move_to (cr, 4, y - 3);
-      cairo_show_text (cr, label);
-      g_clear_pointer (&label, g_free);
-    }
+        cairo_set_source_rgb (cr, 0.18, 0.18, 0.18);
+        cairo_move_to (cr, 0, y);
+        cairo_line_to (cr, width, y);
+        cairo_stroke (cr);
+
+        cairo_set_source_rgb (cr, 0.45, 0.45, 0.45);
+        label = g_strdup_printf ("%.0f", db);
+        cairo_move_to (cr, 4, y - 3);
+        cairo_show_text (cr, label);
+        g_clear_pointer (&label, g_free);
+      }
+  }
 
   /* Tuning marker: the centre of the passband, where the tuner sits. */
   cairo_set_source_rgb (cr, 0.55, 0.55, 0.55);
@@ -129,11 +141,11 @@ draw_func (GtkDrawingArea *area, cairo_t *cr, int width, int height,
   /* Peak hold first, dim, so the live trace paints over it. */
   cairo_set_line_width (cr, 1.0);
   cairo_set_source_rgb (cr, 0.35, 0.35, 0.35);
-  draw_trace (cr, self->spectrum.peak_db, width, height);
+  draw_trace (self, cr, self->spectrum.peak_db, width, height);
 
   cairo_set_line_width (cr, 1.5);
   cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
-  draw_trace (cr, self->spectrum.psd_db, width, height);
+  draw_trace (self, cr, self->spectrum.psd_db, width, height);
 }
 
 static void
@@ -146,8 +158,10 @@ static void
 rnkg_spectrum_view_init (RnkgSpectrumView *self)
 {
   rnkg_spectrum_init (&self->spectrum);
-  self->freq_mhz  = 0.0;
-  self->rate_msps = 0.0;
+  self->freq_mhz    = 0.0;
+  self->rate_msps   = 0.0;
+  self->view_top    = 0.0;
+  self->view_bottom = -110.0;
 
   gtk_widget_set_hexpand (GTK_WIDGET (self), TRUE);
   gtk_widget_set_vexpand (GTK_WIDGET (self), TRUE);
@@ -179,5 +193,29 @@ rnkg_spectrum_view_update (RnkgSpectrumView *self, const RnkgSpectrum *spectrum)
   g_return_if_fail (spectrum != NULL);
 
   self->spectrum = *spectrum;
+
+  /* Follow the live trace: a touch of headroom, a minimum span, and a
+   * smoothed approach so the axis glides instead of jittering. */
+  if (spectrum->has_data)
+    {
+      double lo = G_MAXDOUBLE, hi = -G_MAXDOUBLE;
+      double target_top, target_bottom;
+
+      for (guint i = 0; i < RNKG_SPECTRUM_BINS; i++)
+        {
+          lo = MIN (lo, spectrum->psd_db[i]);
+          hi = MAX (hi, spectrum->psd_db[i]);
+        }
+
+      target_top    = MIN (hi + 6.0, 5.0);
+      target_bottom = MAX (lo - 4.0, -140.0);
+      if (target_top - target_bottom < SPAN_MIN_DB)
+        target_bottom = target_top - SPAN_MIN_DB;
+
+      self->view_top    += RANGE_SMOOTH * (target_top - self->view_top);
+      self->view_bottom += RANGE_SMOOTH * (target_bottom -
+                                           self->view_bottom);
+    }
+
   gtk_widget_queue_draw (GTK_WIDGET (self));
 }
