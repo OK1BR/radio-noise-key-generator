@@ -197,3 +197,10 @@ Things already hit once here, or certain to be hit:
   tests and still be half-correlated with itself; there is a gate for
   exactly that case (`/health/structure-correlated`). Do not remove it as
   redundant.
+- **Every block loop needs the §4.3 startup discard, not just the
+  collector.** The CLI snap mode and the GUI worker hand-roll their block
+  loops (rotation wants per-block candidates, not one sealed run) and both
+  initially credited the very first post-warm-up block. Found in the
+  2026-08-19 security review, fixed the same day; the `cli-snap` gate pins
+  the CLI path. Anyone adding a third block loop: the first healthy block
+  is evidence, not material.

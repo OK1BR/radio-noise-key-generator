@@ -1,5 +1,29 @@
 # Status
 
+## 2026-08-19 late — security review of the generation path, findings fixed
+
+Full-pipeline review on Richard's request (is the math right, or is this a
+placebo): the MCV formula and its worked example, both health-test cutoffs,
+the credit margin against the NIST cross-check, the rejection thresholds
+for every alphabet and the extractor construction all check out. The honest
+claim stays SPEC §1: `getrandom()` with a measured radio contribution on
+top; an attacker has to break both sources at once. Three findings, fixed:
+
+- **The snap/rotation paths skipped the §4.3 startup discard.** The
+  collector discards the first healthy block as startup evidence; the CLI
+  snap loop and the GUI worker credited and used it. Both now discard it
+  the same way. Verified: a one-block file through `--snap-after` yields
+  no candidate where it used to emit one, two blocks yield exactly one;
+  a new no-hardware gate (`cli-snap`) pins the CLI path. 6/6 gates.
+- **The GUI worker's sample buffer moved to gcry secure memory** (it was
+  plain heap and never wiped); it is wiped and freed on worker exit, like
+  the CLI's. The GUI code path compiles and the app was not exercised
+  live for this change — the visible behaviour difference is one extra
+  block (~0.13 s) before the first candidate appears.
+- **SPEC §1 now states the computational ceiling:** nominal strengths
+  above ~256 bits are capped by SHAKE-256's generic security — the extra
+  credited bits buy margin, not a bigger number.
+
 ## 2026-08-19 end of day — where this stands, for the next session
 
 M0 + M1 done, M2 essentially done. The window matches SPEC §8 after

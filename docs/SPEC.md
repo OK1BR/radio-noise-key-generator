@@ -15,6 +15,13 @@ tests are performed, and the conditioning is not one of the vetted
 constructions of SP 800-90C. Anyone who needs a validated RNG needs
 certified hardware, not this.
 
+One more honest bound: any output whose nominal strength exceeds ~256 bits
+(long keys, very long passwords) is backed computationally, not
+information-theoretically — the generic security of SHAKE-256 caps the whole
+construction at ~2^256 guesses, the same class as every practical generator
+(`getrandom()`'s ChaCha20 included). The credited radio bits above that line
+buy margin, not a bigger number.
+
 The honest summary: this is `getrandom()` with a radio stirred in, and an
 instrument panel showing what the radio was doing at the time.
 
