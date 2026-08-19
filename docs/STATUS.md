@@ -14,9 +14,22 @@ key crosses the plate edge). `.desktop` (validated), AppStream metainfo
 Exec, both icons, metainfo; icon cache and desktop database refreshed.
 6/6 gates still green after the reconfigure.
 
-Open: `packaging/PKGBUILD` is written but sha256sums says SKIP until a
-`v0.1.0` tag exists to checksum; the AUR upload needs Richard's AUR
-account. nfpm (deb/rpm) deliberately skipped — SCOPE asks for AUR only.
+**Released the same evening, on Richard's go — v0.1.0 is out, M3 done:**
+
+- **CI** after the family pipeline (release-time only): gates, then
+  AppImage (linuxdeploy) + .deb/.rpm (nfpm), both install-tested in fresh
+  containers before anything attaches to the release. The fedora:40 test
+  caught a real one on the first run — F40 ships librtlsdr 0.6, the
+  binary needs the 2.x soname — so the rpm targets **Fedora 41+** and the
+  v0.1.0 tag was moved once (with Richard's approval) to pick up that
+  fix; the release survived the move intact.
+- **GitHub release v0.1.0** with curated notes and all three artifacts
+  attached (AppImage 36.6 MB, deb 54 kB, rpm 56 kB), attach gated on the
+  container install-tests passing (ubuntu:24.04 ✓, fedora:41 ✓).
+- **AUR package `radio-noise-key-generator` 0.1.0-1 published**
+  (maintainer ok1br, indexed by the RPC), sha256 from the final tag
+  tarball, verified locally with a full `makepkg` build including the
+  test suite in `check()`.
 
 ## 2026-08-19 late — security review of the generation path, findings fixed
 
