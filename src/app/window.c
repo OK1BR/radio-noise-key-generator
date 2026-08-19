@@ -686,18 +686,14 @@ rnkg_window_init (RnkgWindow *self)
   gtk_stack_add_named (self->stack, GTK_WIDGET (self->status_page), "status");
   gtk_stack_set_visible_child_name (self->stack, "opening");
 
-  /* Footer: what the source is on the left, what it measures on the
-   * right — the header bar stays a plain title. */
-  self->source_line = GTK_LABEL (gtk_label_new (""));
-  gtk_widget_add_css_class (GTK_WIDGET (self->source_line), "dim-label");
-  gtk_label_set_xalign (self->source_line, 0.0);
-  gtk_widget_set_hexpand (GTK_WIDGET (self->source_line), TRUE);
-
+  /* The measurements stay in their band between spectrum and generation;
+   * only the source description lives in the window footer. */
   self->status_line = GTK_LABEL (gtk_label_new ("collecting…"));
   gtk_widget_add_css_class (GTK_WIDGET (self->status_line), "dim-label");
   gtk_widget_add_css_class (GTK_WIDGET (self->status_line), "numeric");
   gtk_label_set_wrap (self->status_line, TRUE);
-  gtk_label_set_xalign (self->status_line, 1.0);
+  gtk_label_set_xalign (self->status_line, 0.0);
+  gtk_widget_set_hexpand (GTK_WIDGET (self->status_line), TRUE);
 
   self->reopen = GTK_BUTTON (gtk_button_new_with_label ("Reopen"));
   gtk_widget_set_visible (GTK_WIDGET (self->reopen), FALSE);
@@ -708,21 +704,32 @@ rnkg_window_init (RnkgWindow *self)
   gtk_widget_set_margin_end (status_row, 12);
   gtk_widget_set_margin_top (status_row, 6);
   gtk_widget_set_margin_bottom (status_row, 6);
-  gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->source_line));
   gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->status_line));
   gtk_box_append (GTK_BOX (status_row), GTK_WIDGET (self->reopen));
 
+  self->source_line = GTK_LABEL (gtk_label_new (""));
+  gtk_widget_add_css_class (GTK_WIDGET (self->source_line), "dim-label");
+  gtk_widget_add_css_class (GTK_WIDGET (self->source_line), "caption");
+  gtk_label_set_xalign (self->source_line, 0.0);
+  gtk_widget_set_margin_start (GTK_WIDGET (self->source_line), 12);
+  gtk_widget_set_margin_end (GTK_WIDGET (self->source_line), 12);
+  gtk_widget_set_margin_top (GTK_WIDGET (self->source_line), 4);
+  gtk_widget_set_margin_bottom (GTK_WIDGET (self->source_line), 4);
+
   content = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_append (GTK_BOX (content), GTK_WIDGET (self->stack));
+  gtk_box_append (GTK_BOX (content),
+                  gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
+  gtk_box_append (GTK_BOX (content), status_row);
   gtk_box_append (GTK_BOX (content),
                   gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
   gtk_box_append (GTK_BOX (content), GTK_WIDGET (self->generation_view));
 
   toolbar_view = adw_toolbar_view_new ();
   adw_toolbar_view_add_top_bar (ADW_TOOLBAR_VIEW (toolbar_view), header);
-  /* The status row is the footer of the whole window. */
+  /* Only the source description lives in the window footer. */
   adw_toolbar_view_add_bottom_bar (ADW_TOOLBAR_VIEW (toolbar_view),
-                                   status_row);
+                                   GTK_WIDGET (self->source_line));
   adw_toolbar_view_set_content (ADW_TOOLBAR_VIEW (toolbar_view), content);
   adw_application_window_set_content (ADW_APPLICATION_WINDOW (self),
                                       toolbar_view);
