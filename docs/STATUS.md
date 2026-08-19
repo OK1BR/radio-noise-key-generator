@@ -14,9 +14,21 @@ spectrum on the real dongle — noise floor around −75 dB, the DC spur in
 the centre, the 1300.000 MHz marker. 5/5 gates green, zero warnings, the
 app opens/reads/exits cleanly (`RNKG_AUTOCLOSE_MS` hook).
 
-**Not built yet** (SCOPE 2.3–2.4): source panel, health panel, entropy
-counter, generation panel — and the secrets-in-UI decision that gates the
-generation panel.
+**Built later the same day, on Richard's design:** the window per SPEC §8
+(spectrum strip with block-mean DC removal and an auto-following axis,
+one status line, generation panel with live rotation + Snap + Copy with
+clipboard self-clear, settings behind the family hamburger with About,
+GKeyFile persistence in ~/.config incl. save-on-change). Verified live
+and by Richard's eye through several iterations.
+
+**CLI snap** — the scriptable face of the rotation, verified live on the
+dongle: `--snap-after 2` snapped at ~2.7 s wall clock (open + warm-up
+included), `sleep 3 | rnkg --snap` snapped the moment the pipe closed,
+`--snap-after 10 -n 44 -a all` rotated ten seconds and emitted a valid
+44-char candidate; `-k 32` works; the three option-conflict validations
+print and exit 2. Found and fixed en route: password candidates come
+from gcry secure memory and must not be g_free()d — copy out and
+rnkg_secure_string_free() the original (SIGABRT otherwise).
 
 ## 2026-08-19 — M1 bring-up: first live generation
 

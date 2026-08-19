@@ -124,6 +124,16 @@ gain, 2.048 MS/s) and whoever needs a different frequency has the CLI.
 A first draft had device/frequency/gain/rate controls and a seven-field
 health row; Richard cut it — the GUI is a generator, not an SDR console.
 
+**The CLI face of the rotation:** `rnkg --snap-after SEC` rotates fresh
+candidates and snaps on a timer; `rnkg --snap` rotates until a newline
+*or EOF* on stdin picks one, so a script or an agent controls the moment
+simply by holding the pipe open — `sleep 3 | rnkg --snap`. The moment of
+snapping adds nothing and costs nothing (every candidate is equally
+strong, each fully backed by its own blocks' measured credit plus the
+kernel seed), so a timer is as good a finger as a human's. Works for
+passwords and `-k` keys alike; a candidate needing more credit than one
+block simply accumulates blocks and rotates slower.
+
 **Secrets in the UI, decided:** showing candidates on screen is the point
 of the rotation, so the display label holds them in ordinary heap and that
 is accepted. What the program controls, it wipes: engine strings live in
