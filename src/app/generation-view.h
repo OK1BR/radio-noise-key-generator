@@ -33,4 +33,12 @@ void rnkg_generation_view_get_params (RnkgGenerationView *self,
                                       RnkgAlphabet       *alphabet,
                                       guint              *length);
 
+/* Restore saved controls: alphabet by its rnkg_alphabet_parse() name. */
+void rnkg_generation_view_set_params (RnkgGenerationView *self,
+                                      const char         *alphabet_name,
+                                      guint               length);
+
+/* The selected alphabet's name, for persisting. */
+const char *rnkg_generation_view_alphabet_name (RnkgGenerationView *self);
+
 G_END_DECLS

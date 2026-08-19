@@ -27,6 +27,7 @@
 #include "rnkg-collect.h"
 #include "rnkg-source.h"
 #include "rnkg-spectrum.h"
+#include "settings.h"
 #include "spectrum-view.h"
 
 #define UI_REFRESH_MS 50   /* 20 Hz; blocks arrive at ~15 Hz */
@@ -401,6 +402,27 @@ on_reopen (GtkButton *button, gpointer data)
   window_start_worker (RNKG_WINDOW (data));
 }
 
+/* Persist the source params and the generation controls, family style:
+ * ~/.config/radio-noise-key-generator/settings.ini. */
+static void
+window_save_settings (RnkgWindow *self)
+{
+  RnkgAppSettings s;
+  RnkgAlphabet    alphabet;
+
+  rnkg_generation_view_get_params (self->generation_view, &alphabet,
+                                   &s.length);
+  s.device    = self->params.device;
+  s.freq_mhz  = self->params.freq_mhz;
+  s.rate_msps = self->params.rate_msps;
+  s.gain_db   = self->params.gain_db;
+  s.alphabet  = g_strdup (
+      rnkg_generation_view_alphabet_name (self->generation_view));
+
+  rnkg_app_settings_save (&s);
+  rnkg_app_settings_clear (&s);
+}
+
 /* --- settings ------------------------------------------------------------ */
 
 typedef struct {
@@ -438,6 +460,7 @@ settings_closed (AdwDialog *dialog, gpointer data)
       self->params = p;
       window_start_worker (self);
     }
+  window_save_settings (self);
 
   g_object_unref (self);
   g_free (rows);
@@ -605,6 +628,13 @@ rnkg_window_dispose (GObject *obj)
 {
   RnkgWindow *self = RNKG_WINDOW (obj);
 
+  if (self->generation_view != NULL)
+    {
+      window_save_settings (self);
+      /* dispose can run again; the widget tree is gone by then */
+      self->generation_view = NULL;
+    }
+
   g_clear_handle_id (&self->refresh_id, g_source_remove);
 
   if (self->state != NULL)
@@ -634,12 +664,14 @@ rnkg_window_init (RnkgWindow *self)
   GtkWidget *spinner_page;
   GtkWidget *status_row;
   GtkWidget *content;
+  RnkgAppSettings saved;
 
+  rnkg_app_settings_load (&saved);
   self->params = (SourceParams) {
-    .device    = 0,
-    .freq_mhz  = RNKG_DEFAULT_FREQ_HZ / 1e6,
-    .rate_msps = RNKG_DEFAULT_SAMPLERATE / 1e6,
-    .gain_db   = -1.0,   /* the tuner's maximum */
+    .device    = saved.device,
+    .freq_mhz  = saved.freq_mhz,
+    .rate_msps = saved.rate_msps,
+    .gain_db   = saved.gain_db,
   };
 
   gtk_window_set_title (GTK_WINDOW (self), "Radio Noise Key Generator");
@@ -664,6 +696,9 @@ rnkg_window_init (RnkgWindow *self)
   self->spectrum_view   = RNKG_SPECTRUM_VIEW (rnkg_spectrum_view_new ());
   self->generation_view =
       RNKG_GENERATION_VIEW (rnkg_generation_view_new ());
+  rnkg_generation_view_set_params (self->generation_view,
+                                   saved.alphabet, saved.length);
+  rnkg_app_settings_clear (&saved);
   gtk_widget_set_vexpand (GTK_WIDGET (self->generation_view), TRUE);
   gtk_widget_set_valign (GTK_WIDGET (self->generation_view),
                          GTK_ALIGN_CENTER);

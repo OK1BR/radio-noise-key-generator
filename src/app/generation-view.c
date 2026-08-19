@@ -245,3 +245,30 @@ rnkg_generation_view_get_params (RnkgGenerationView *self,
   if (length != NULL)
     *length = (guint) gtk_range_get_value (GTK_RANGE (self->length));
 }
+
+void
+rnkg_generation_view_set_params (RnkgGenerationView *self,
+                                 const char *alphabet_name, guint length)
+{
+  g_return_if_fail (RNKG_IS_GENERATION_VIEW (self));
+
+  for (guint i = 0; alphabet_names[i] != NULL; i++)
+    if (g_strcmp0 (alphabet_names[i], alphabet_name) == 0)
+      {
+        gtk_drop_down_set_selected (self->alphabet, i);
+        break;
+      }
+  gtk_range_set_value (GTK_RANGE (self->length), CLAMP (length, 8, 128));
+}
+
+const char *
+rnkg_generation_view_alphabet_name (RnkgGenerationView *self)
+{
+  guint selected;
+
+  g_return_val_if_fail (RNKG_IS_GENERATION_VIEW (self), "letters");
+
+  selected = gtk_drop_down_get_selected (self->alphabet);
+  return selected < G_N_ELEMENTS (alphabet_names) - 1
+       ? alphabet_names[selected] : "letters";
+}
