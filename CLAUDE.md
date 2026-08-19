@@ -17,11 +17,15 @@ milestone, including the traps already hit here. Status and handover:
 `docs/STATUS.md` — what is verified and what is explicitly not.
 
 **Status (2026-08-19): M1 bring-up done, 3/3 gates green, first live
-generation from the dongle verified (RTL-SDR Blog V4, 1300 MHz), nothing
-pushed anywhere.** Real hardware measures 0.62–0.84 bits/sample, not the
->4 M0 assumed — `RNKG_ASSESSED_H` is 0.3 now; see `docs/STATUS.md` for the
-measurements. Still open in M1: warm-up discard, explicit startup health
-test, read watchdog, DC-spike decision, NIST cross-check.
+generation from the dongle verified (RTL-SDR Blog V4, 1300 MHz).** Real
+hardware measures 0.62–0.84 bits/sample, not the >4 M0 assumed —
+`RNKG_ASSESSED_H` is 0.3 now; see `docs/STATUS.md` for the measurements.
+Still open in M1: warm-up discard, explicit startup health test, read
+watchdog, DC-spike decision, NIST cross-check.
+
+Public repo: https://github.com/OK1BR/radio-noise-key-generator — commit
+and push continuously as work lands (Richard asked for this 2026-08-19);
+milestone-sized batches are fine, broken intermediate states are not.
 
 ## Four rules that override convenience
 
