@@ -11,7 +11,16 @@ same conventions apply:
 - Build: `meson setup build && meson compile -C build`.
 - On Arch always build from source; install goes to `~/.local`, not `/usr`.
 
-Scope/design: `docs/SPEC.md`. Status and handover: `docs/STATUS.md`.
+Scope/design: `docs/SPEC.md` — what the program is and why. **Read it first.**
+What is left to build: `docs/SCOPE.md` — the working list, milestone by
+milestone, including the traps already hit here. Status and handover:
+`docs/STATUS.md` — what is verified and what is explicitly not.
+
+**Status (2026-08-19): M0 done, 3/3 gates green (20 tests), nothing pushed
+anywhere.** Verified against sample files only. `extra/rtl-sdr` is not
+installed, so the `HAVE_LIBRTLSDR` branch of `rnkg-source.c` has never been
+compiled — do not describe it as working. M1 starts with installing that
+package, which is a system change and needs Richard's explicit go-ahead.
 
 ## Four rules that override convenience
 
