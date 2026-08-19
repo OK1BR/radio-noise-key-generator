@@ -84,9 +84,10 @@ requires, this margin should be revisited — not before.
   min-entropy at several frequencies and gains, capture replayed through the
   NIST reference tool, behaviour when the dongle is pulled mid-collection.
 - **M2 — GTK4 front end.** Live spectrum so the empty channel is visible,
-  health test indicators, entropy counter, generation panel. The spectrum is
-  the reason a GUI exists: it is the visual proof that what is being sampled
-  is noise and not a carrier.
+  one status line, and the generation panel with live rotation and Snap —
+  the window is specified in §8. The spectrum is the reason a GUI exists:
+  it is the visual proof that what is being sampled is noise and not a
+  carrier.
 - **M3 — packaging.** `.desktop`, metainfo, icon in the family's Papirus
   style, AUR package.
 
@@ -101,3 +102,32 @@ requires, this margin should be revisited — not before.
   can hand it to the NIST tool without re-running `rtl_sdr` separately.
   Against: it means key-adjacent material sits in memory longer than it needs
   to.
+
+## 8. The window (decided with Richard, 2026-08-19)
+
+One window, three parts, nothing to configure:
+
+- **The spectrum**, most of the window. Its only job is the visual check
+  that the frequency is empty. No controls around it.
+- **One status line** under it: the measured numbers while the source is
+  healthy (min-entropy, serial, I/Q, DC, block count), the engine's human
+  message in red plus a Reopen button when a test has failed.
+- **The generation panel**, the main act. Every healthy block derives a
+  fresh candidate — its own extractor, that block's measured credit, the
+  unconditional kernel seed — and the panel rotates through them live, at
+  the block rate. **Snap** freezes whichever candidate is on screen at the
+  moment the user chooses; Copy puts it on the clipboard with a timed
+  clear; Rotate resumes. Length and alphabet sit next to the button.
+
+No source panel: the GUI runs on the engine defaults (1300 MHz, maximum
+gain, 2.048 MS/s) and whoever needs a different frequency has the CLI.
+A first draft had device/frequency/gain/rate controls and a seven-field
+health row; Richard cut it — the GUI is a generator, not an SDR console.
+
+**Secrets in the UI, decided:** showing candidates on screen is the point
+of the rotation, so the display label holds them in ordinary heap and that
+is accepted. What the program controls, it wipes: engine strings live in
+secure memory until copied out, our own copies are zeroed, the clipboard
+clears itself after 45 s (and only if it still holds our text). What GTK
+and Pango copy internally cannot be wiped — the same call pass-for-linux
+made for its reveal path.

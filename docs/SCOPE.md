@@ -124,26 +124,19 @@ this needs deciding before any UI code is written:
 
 The third is worth looking at first — the family already solved this.
 
-### 2.3 Screens
+### 2.3 Screens — revised 2026-08-19 with Richard, built the same day
 
-- **Source panel:** device picker (`rnkg_source_device_count()` /
-  `_device_name()` already exist), frequency, gain, sample rate.
-- **Spectrum:** GtkDrawingArea, peak hold, and a clear marker for where the
-  tuner sits. Black background, family style.
-- **Health panel:** one indicator per test (RCT, APT, serial, I/Q), live.
-  When one fails, say *which* and what to do about it — the strings in
-  `rnkg_health_verdict_message()` are already written for a human.
-- **Entropy counter:** credited bits against the target.
-- **Generation panel:** length, alphabet, count; reveal/hide; copy with an
-  auto-clear timer, as `pass-for-linux` does it.
+The first draft (source panel with device/freq/gain/rate, a seven-field
+health row) was cut on Richard's feedback: the GUI is a generator, not an
+SDR console. What stands now is specified in SPEC §8: spectrum, one status
+line, and the generation panel with live rotation and Snap. All built;
+interactive verification by Richard pending.
 
 ### 2.4 Handling of secrets in the UI
 
-Same rule as `pass-for-linux`: nothing generated reaches persistent storage,
-buffers are `gcry_malloc_secure()`, clipboard clears on a timer. A GUI makes
-this harder than a CLI — a GtkLabel holding a password is a heap allocation
-outside secure memory. Decide deliberately how far to take this and write
-the decision into SPEC.
+Decided and written into SPEC §8: display in ordinary heap is accepted
+(showing candidates is the point), everything the program controls is
+wiped, the clipboard clears itself after 45 s if it still holds our text.
 
 ---
 
