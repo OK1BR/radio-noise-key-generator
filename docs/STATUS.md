@@ -77,9 +77,18 @@ estimator), the full suite's minimum lands at ~0.8× MCV, and our halving
 margin sits well under that on both operating points. The 0.5 margin is
 now empirically supported on this hardware, not just assumed.
 
-**Still open in M1:** dongle-pull behaviour (needs a hand on the
-hardware); the watchdog timeout path (needs a wedged device); the one
-unexplained 100 MHz pass above.
+**Dongle pulled mid-collection — verified, clean.** Richard pulled the
+V4 at block 1035 of a slow run (250 kS/s, ~94 % of an 82 Mb target).
+librtlsdr printed its own register-error noise, then the run ended
+immediately through our error path (`rtlsdr_read_sync() failed — device
+removed?`), exit 1, no hang, no crash, nothing generated. The library
+returns an error on removal on its own, so the watchdog deadline never
+had to fire; the timeout path stays unverified until a device wedges
+silently for real. Side observation from the same run: at 250 kS/s the
+stream measures 0.56–0.57 b/sample against 0.83–0.86 at 2.048 MS/s.
+
+**Still open in M1:** the watchdog timeout path (needs a silently wedged
+device); the one unexplained 100 MHz pass above.
 
 ## 2026-08-19 — M0 done, no hardware yet
 

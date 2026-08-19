@@ -87,11 +87,10 @@ no progress bar needed).
 The NIST cross-check is done too (2026-08-19, table in STATUS.md): plain
 MCV tracks the tool's H_original, the full-suite minimum lands at ~0.8×
 MCV, and our halved credit sits under all of it on both operating points.
+The dongle-pull test as well (same day): a mid-collection unplug ends the
+run cleanly through the library's error return — details in STATUS.md.
 
-Still to do:
-
-- How the program behaves when the dongle is pulled mid-collection — needs
-  a hand on the hardware.
+Nothing is left in 1.4.
 
 ---
 
