@@ -152,6 +152,14 @@ postponed deliberately in favour of manual use; expect the same here.
 - AUR package, alongside the family's other three.
 - Install to `~/.local`, never `/usr`.
 
+Done 2026-08-19 (Richard's go the same evening): icon designed with
+Richard through several rounds (final: a flat key hanging through the
+noise line, bitting down, tilted 10°, head over the plate edge — blue,
+the family's free accent), `.desktop` + metainfo + `data/meson.build`
+after the skimmer/sdr pattern, both validated; installed and verified
+in `~/.local`. `packaging/PKGBUILD` is written; the sha256 and the AUR
+upload wait for the `v0.1.0` tag.
+
 ---
 
 ## Cross-cutting: still open

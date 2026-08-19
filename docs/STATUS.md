@@ -1,5 +1,23 @@
 # Status
 
+## 2026-08-19 evening — M3 packaging landed
+
+On Richard's go. The icon went through several design rounds with him
+(final: a modern flat key hanging vertically through the white noise
+line, bitting down, tilted 10° right, head poking over the plate edge;
+blue #2196f3 — the family accent still free; plate/shadow/highlight
+identical to the siblings, highlight drawn under the glyph because the
+key crosses the plate edge). `.desktop` (validated), AppStream metainfo
+(appstreamcli: passed), `data/meson.build` after the skimmer pattern,
+`subdir('data')` + gnome module wired into the root build. Installed to
+`~/.local` and verified on disk: both binaries, launcher with absolute
+Exec, both icons, metainfo; icon cache and desktop database refreshed.
+6/6 gates still green after the reconfigure.
+
+Open: `packaging/PKGBUILD` is written but sha256sums says SKIP until a
+`v0.1.0` tag exists to checksum; the AUR upload needs Richard's AUR
+account. nfpm (deb/rpm) deliberately skipped — SCOPE asks for AUR only.
+
 ## 2026-08-19 late — security review of the generation path, findings fixed
 
 Full-pipeline review on Richard's request (is the math right, or is this a
