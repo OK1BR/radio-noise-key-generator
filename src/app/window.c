@@ -716,13 +716,13 @@ rnkg_window_init (RnkgWindow *self)
   gtk_box_append (GTK_BOX (content), GTK_WIDGET (self->stack));
   gtk_box_append (GTK_BOX (content),
                   gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
-  gtk_box_append (GTK_BOX (content), status_row);
-  gtk_box_append (GTK_BOX (content),
-                  gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
   gtk_box_append (GTK_BOX (content), GTK_WIDGET (self->generation_view));
 
   toolbar_view = adw_toolbar_view_new ();
   adw_toolbar_view_add_top_bar (ADW_TOOLBAR_VIEW (toolbar_view), header);
+  /* The status row is the footer of the whole window. */
+  adw_toolbar_view_add_bottom_bar (ADW_TOOLBAR_VIEW (toolbar_view),
+                                   status_row);
   adw_toolbar_view_set_content (ADW_TOOLBAR_VIEW (toolbar_view), content);
   adw_application_window_set_content (ADW_APPLICATION_WINDOW (self),
                                       toolbar_view);
