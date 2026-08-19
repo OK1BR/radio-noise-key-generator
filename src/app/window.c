@@ -10,17 +10,20 @@
  * warm-up read and every block read takes ~64 ms, none of which belongs
  * on the main loop.  Worker and window share a refcounted context, so
  * whichever side stops last frees it and the worker can never touch a
- * dead widget.  For every healthy block the worker also derives a fresh
- * candidate password — new extractor, this block's measured credit, the
- * unconditional kernel seed — which is what rotates in the generation
- * panel until the user snaps it.  A failed health test is terminal for
- * the worker (§4.3); Reopen or changed settings start a fresh one.
+ * dead widget.  The first healthy block feeds the §4.3 startup test and
+ * is discarded; for every healthy block after it the worker derives a
+ * fresh candidate password — new extractor, this block's measured
+ * credit, the unconditional kernel seed — which is what rotates in the
+ * generation panel until the user snaps it.  A failed health test is
+ * terminal for the worker (§4.3); Reopen or changed settings start a
+ * fresh one.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "window.h"
 
+#include <gcrypt.h>
 #include <string.h>
 
 #include "generation-view.h"
@@ -181,6 +184,7 @@ worker_run (gpointer data)
   GError      *error  = NULL;
   RnkgSource  *source = NULL;
   guint8      *block  = NULL;
+  gsize        startup_left = RNKG_STARTUP_SAMPLES;
   RnkgHealth   health;
   SourceParams p;
 
@@ -217,7 +221,18 @@ worker_run (gpointer data)
    * §4.3 sense, nothing latched carries over. */
   rnkg_health_init (&health, RNKG_ASSESSED_H, FALSE);
 
-  block = g_malloc (RNKG_BLOCK_BYTES);
+  /* Secure memory, like the CLI: raw samples back the candidate and do not
+   * belong in swappable heap.  Opening the source initialised libgcrypt. */
+  block = gcry_malloc_secure (RNKG_BLOCK_BYTES);
+  if (block == NULL)
+    {
+      g_set_error_literal (&error, RNKG_ERROR, RNKG_ERROR_FAILED,
+                           "cannot allocate a secure sample buffer");
+      worker_set_error (st, g_steal_pointer (&error));
+      rnkg_source_free (source);
+      shared_state_unref (st);
+      return NULL;
+    }
 
   while (worker_keep_going (st))
     {
@@ -247,7 +262,11 @@ worker_run (gpointer data)
       snapped  = st->snapped;
       g_mutex_unlock (&st->lock);
 
-      if (verdict == RNKG_HEALTH_OK && !snapped)
+      if (verdict == RNKG_HEALTH_OK && startup_left > 0)
+        /* §4.3 startup: evidence the source is healthy, not material —
+         * never derived from, exactly as the collector path does. */
+        startup_left -= MIN (startup_left, (gsize) RNKG_BLOCK_BYTES);
+      else if (verdict == RNKG_HEALTH_OK && !snapped)
         candidate = derive_candidate (block, &estimate, alphabet, length);
 
       g_mutex_lock (&st->lock);
@@ -276,7 +295,8 @@ worker_run (gpointer data)
         break;
     }
 
-  g_free (block);
+  explicit_bzero (block, RNKG_BLOCK_BYTES);
+  gcry_free (block);
   rnkg_source_free (source);
   shared_state_unref (st);
   return NULL;

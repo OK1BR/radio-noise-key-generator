@@ -88,7 +88,8 @@ report (const RnkgProgress *p)
  * credit, the unconditional kernel seed), and the snap picks whichever
  * is current.  The moment of snapping adds nothing and costs nothing —
  * every candidate is equally strong — so a script's timer is as good a
- * finger as a human's.
+ * finger as a human's.  The first healthy block feeds the §4.3 startup
+ * test and is discarded, exactly as the collector path does.
  *
  * Two triggers: --snap-after SEC is a plain timer; --snap watches stdin
  * and snaps on a newline or EOF, so an agent controls the moment simply
@@ -155,6 +156,7 @@ run_snap (RnkgSource *source, RnkgAlphabet alphabet, double target_bits)
   RnkgHealth     health;
   RnkgExtractor *x = NULL;
   guint8        *block;
+  gsize          startup_left = RNKG_STARTUP_SAMPLES;
   char          *current = NULL;
   const gint64   deadline = opt_snap_after >= 0.0
     ? g_get_monotonic_time () + (gint64) (opt_snap_after * G_USEC_PER_SEC)
@@ -208,6 +210,15 @@ run_snap (RnkgSource *source, RnkgAlphabet alphabet, double target_bits)
         }
 
       rnkg_estimate_mcv (block, RNKG_BLOCK_BYTES, &estimate);
+
+      if (startup_left > 0)
+        {
+          /* §4.3 startup: the block passed every test, but it is evidence
+           * the source is healthy, not material — discarded, never
+           * absorbed. */
+          startup_left -= MIN (startup_left, (gsize) RNKG_BLOCK_BYTES);
+          continue;
+        }
 
       if (x == NULL)
         {

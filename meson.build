@@ -99,12 +99,20 @@ test('spectrum', spectrum_test, timeout : 60)
 # --- CLI --------------------------------------------------------------------
 # settings.c is shared with the GUI: the CLI defaults its generation
 # parameters from the same ~/.config ini the GUI writes.  It is GLib-only.
-executable('rnkg',
+rnkg_exe = executable('rnkg',
   ['src/cli/main.c', 'src/app/settings.c'],
   include_directories : [engine_inc, include_directories('src/app')],
   dependencies : engine_deps,
   link_with : engine_lib,
   install : true,
+)
+
+# The snap loop is hand-rolled (rotation wants per-block candidates, not a
+# sealed collector run), so its §4.3 startup discard gets its own gate.
+test('cli-snap',
+  find_program('sh'),
+  args : [files('src/cli_snap_test.sh'), rnkg_exe],
+  timeout : 60,
 )
 
 # --- GTK4/libadwaita front end (M2) -----------------------------------------
