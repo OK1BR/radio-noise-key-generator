@@ -113,6 +113,13 @@ struct _RnkgWindow {
   SourceParams params;
   SharedState *state;
   guint        refresh_id;
+
+  /* Save-on-change debounce for the generation controls: a kill or a
+   * crash must not lose choices that only dispose would have written. */
+  RnkgAlphabet last_alphabet;
+  guint        last_length;
+  gboolean     gen_dirty;
+  guint        gen_stable;
 };
 
 G_DEFINE_FINAL_TYPE (RnkgWindow, rnkg_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -278,6 +285,7 @@ worker_run (gpointer data)
 /* --- window -------------------------------------------------------------- */
 
 static gboolean on_refresh (gpointer data);
+static void window_save_settings (RnkgWindow *self);
 
 static void
 window_start_worker (RnkgWindow *self)
@@ -327,6 +335,20 @@ on_refresh (gpointer data)
 
   /* Push the panel's settings in, pull the results out. */
   rnkg_generation_view_get_params (self->generation_view, &alphabet, &length);
+
+  /* Persist changed generation controls once they sit still for ~1 s. */
+  if (alphabet != self->last_alphabet || length != self->last_length)
+    {
+      self->last_alphabet = alphabet;
+      self->last_length   = length;
+      self->gen_dirty     = TRUE;
+      self->gen_stable    = 0;
+    }
+  else if (self->gen_dirty && ++self->gen_stable >= 1000 / UI_REFRESH_MS)
+    {
+      self->gen_dirty = FALSE;
+      window_save_settings (self);
+    }
 
   g_mutex_lock (&st->lock);
   st->alphabet = alphabet;
@@ -698,6 +720,9 @@ rnkg_window_init (RnkgWindow *self)
       RNKG_GENERATION_VIEW (rnkg_generation_view_new ());
   rnkg_generation_view_set_params (self->generation_view,
                                    saved.alphabet, saved.length);
+  if (!rnkg_alphabet_parse (saved.alphabet, &self->last_alphabet))
+    self->last_alphabet = RNKG_ALPHABET_LETTERS;
+  self->last_length = saved.length;
   rnkg_app_settings_clear (&saved);
   gtk_widget_set_vexpand (GTK_WIDGET (self->generation_view), TRUE);
   gtk_widget_set_valign (GTK_WIDGET (self->generation_view),
