@@ -16,12 +16,14 @@ What is left to build: `docs/SCOPE.md` — the working list, milestone by
 milestone, including the traps already hit here. Status and handover:
 `docs/STATUS.md` — what is verified and what is explicitly not.
 
-**Status (2026-08-19): M1 bring-up done, 3/3 gates green, first live
+**Status (2026-08-19): M1 nearly done, 4/4 gates green (23 tests), live
 generation from the dongle verified (RTL-SDR Blog V4, 1300 MHz).** Real
 hardware measures 0.62–0.84 bits/sample, not the >4 M0 assumed —
 `RNKG_ASSESSED_H` is 0.3 now; see `docs/STATUS.md` for the measurements.
-Still open in M1: warm-up discard, explicit startup health test, read
-watchdog, DC-spike decision, NIST cross-check.
+Warm-up discard, §4.3 startup test and the read watchdog are in (the
+watchdog's timeout path is unverified — it needs a wedged device). Still
+open in M1: DC-spike decision, dongle-pull test, NIST cross-check, and one
+unexplained 100 MHz pass (STATUS.md).
 
 Public repo: https://github.com/OK1BR/radio-noise-key-generator — commit
 and push continuously as work lands (Richard asked for this 2026-08-19);

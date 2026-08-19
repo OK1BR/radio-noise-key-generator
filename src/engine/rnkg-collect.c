@@ -14,6 +14,8 @@ struct _RnkgCollector {
   double         target_bits;
   guint64        blocks;
   guint64        bytes;
+  gsize          startup_left;
+  gboolean       last_was_startup;
   RnkgEstimate   last_estimate;
   RnkgStructure  last_structure;
   gboolean       sealed;
@@ -27,8 +29,9 @@ rnkg_collector_new (RnkgSource *source, double target_bits, GError **error)
   g_return_val_if_fail (source != NULL, NULL);
 
   c = g_new0 (RnkgCollector, 1);
-  c->source      = source;
-  c->target_bits = target_bits;
+  c->source       = source;
+  c->target_bits  = target_bits;
+  c->startup_left = RNKG_STARTUP_SAMPLES;
 
   c->extractor = rnkg_extractor_new (error);
   if (c->extractor == NULL)
@@ -110,9 +113,21 @@ rnkg_collector_step (RnkgCollector *c, GError **error)
 
   rnkg_estimate_mcv (c->block, RNKG_BLOCK_BYTES, &c->last_estimate);
 
-  if (!rnkg_extractor_absorb (c->extractor, c->block, RNKG_BLOCK_BYTES,
-                              rnkg_estimate_credit (&c->last_estimate), error))
-    return FALSE;
+  if (c->startup_left > 0)
+    {
+      /* §4.3 startup: the block passed every test, but it is evidence the
+       * source is healthy, not material — discarded, never absorbed. */
+      c->startup_left -= MIN (c->startup_left, (gsize) RNKG_BLOCK_BYTES);
+      c->last_was_startup = TRUE;
+    }
+  else
+    {
+      c->last_was_startup = FALSE;
+      if (!rnkg_extractor_absorb (c->extractor, c->block, RNKG_BLOCK_BYTES,
+                                  rnkg_estimate_credit (&c->last_estimate),
+                                  error))
+        return FALSE;
+    }
 
   c->blocks++;
   c->bytes += RNKG_BLOCK_BYTES;
@@ -141,6 +156,7 @@ rnkg_collector_progress (RnkgCollector *c, RnkgProgress *out)
     .target_bits    = c->target_bits,
     .last_estimate  = c->last_estimate,
     .last_structure = c->last_structure,
+    .startup_block  = c->last_was_startup,
   };
 }
 

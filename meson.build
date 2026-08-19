@@ -69,6 +69,14 @@ estimate_test = executable('rnkg-estimate-test',
 )
 test('estimate', estimate_test, timeout : 60)
 
+collect_test = executable('rnkg-collect-test',
+  ['src/collect_test.c'],
+  include_directories : engine_inc,
+  dependencies : engine_deps,
+  link_with : engine_lib,
+)
+test('collect', collect_test, timeout : 60)
+
 generate_test = executable('rnkg-generate-test',
   ['src/generate_test.c'],
   include_directories : engine_inc,

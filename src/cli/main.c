@@ -57,11 +57,12 @@ report (const RnkgProgress *p)
   g_printerr ("  block %-4" G_GUINT64_FORMAT
               " min-entropy %.2f b/sample (Shannon %.2f)"
               "  serial %+.4f  I/Q %+.4f  DC %+.4f"
-              "  credited %.0f/%.0f b\n",
+              "  credited %.0f/%.0f b%s\n",
               p->blocks, p->last_estimate.h_min, p->last_estimate.h_shannon,
               p->last_structure.serial, p->last_structure.iq,
               p->last_structure.dc_bias,
-              p->credited_bits, p->target_bits);
+              p->credited_bits, p->target_bits,
+              p->startup_block ? "  (startup test — discarded)" : "");
 }
 
 static int

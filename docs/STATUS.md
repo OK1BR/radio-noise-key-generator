@@ -30,9 +30,34 @@ made the RCT cutoff (6) fire instantly on real noise. Credited entropy is
 unaffected (the estimator measures per block); a stuck source still trips
 RCT at 68 samples. All 3 gates still green after the change.
 
-**Still open in M1** (SCOPE 1.3/1.4): warm-up discard, explicit startup
-health test, read watchdog, DC-spike measurement/offset-tuning decision,
-dongle-pull behaviour, NIST reference-tool cross-check of the MCV numbers.
+**Engine gaps closed later the same day** (SCOPE 1.3), verified live:
+
+- **Warm-up discard:** the source throws away the first 256 KiB after
+  tuning, before anything reaches the health tests.
+- **Explicit §4.3 startup test:** `RNKG_STARTUP_SAMPLES` (one block) must
+  pass every health test before crediting begins; the block is discarded.
+  The CLI marks it: `block 1 … (startup test — discarded)`. A fourth gate
+  (`rnkg-collect-test`, 3 tests) pins the behaviour: startup credits
+  nothing, a startup failure is terminal, startup samples alone can never
+  satisfy a target. 4/4 gates, 23 tests.
+- **Read watchdog:** every dongle read runs in its own thread with a
+  deadline (4× stream time + 1 s); a device that stops delivering fails
+  the run instead of hanging it. The timeout path is written but **not
+  verified** — triggering it needs a genuinely wedged device. The normal
+  path is exercised by every live run.
+
+**Observed once, not explained:** out of six live runs at 100 MHz (FM
+broadcast), five were rejected by the serial correlation test (serial
+−0.12 to −0.14) and one passed and generated. Hypothesis: a transient
+retune failure left the tuner off-frequency, so the samples genuinely were
+noise — consistent with the per-block checks all passing in that run, but
+unproven. If it was real correlated FM passing under the threshold, the
+design still held: credit is measured per block and the kernel seed is
+mixed in unconditionally. Watch for it during M2's live spectrum work.
+
+**Still open in M1:** DC-spike measurement/offset-tuning decision,
+dongle-pull behaviour (needs a hand on the hardware), NIST reference-tool
+cross-check of the MCV numbers.
 
 ## 2026-08-19 — M0 done, no hardware yet
 

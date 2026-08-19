@@ -59,44 +59,40 @@ assumption), and the `int`-vs-`gsize` chunking in `rnkg_source_read()`.
 
 ### 1.3 What is missing in the engine for real hardware
 
-Known gaps, in order of how much they matter:
+Done 2026-08-19 (see STATUS.md): warm-up discard (first 256 KiB after
+tuning), explicit §4.3 startup test (`RNKG_STARTUP_SAMPLES`, gated by
+`rnkg-collect-test`), read watchdog (per-read thread with a deadline; the
+timeout path itself is unverified — it needs a wedged device).
 
-- **Warm-up discard.** After `rtlsdr_reset_buffer()` the first samples come
-  from a tuner that has not settled. They are not noise, they are a
-  transient. Discard the first block before crediting anything. Not
-  implemented at all right now.
-- **Startup health test.** SP 800-90B §4.3 wants a fixed number of samples
-  (1024 minimum) tested before *any* output is produced. Currently the first
-  block happens to do this, but only by accident of block size. Make it
-  explicit, so shrinking `RNKG_BLOCK_BYTES` later cannot silently remove it.
-- **Read watchdog.** `rtlsdr_read_sync()` on a wedged device can block
-  indefinitely. The CLI can hang forever today. Needs a timeout, and the GUI
-  needs it more than the CLI does.
+Still open:
+
 - **DC spike.** The RTL2832U puts a large spur at the centre of the
   passband. It biases the sample distribution and MCV will see it as reduced
   min-entropy — which is conservative, so it is not a safety problem, but it
   may cost real entropy for no reason. Measure first; only then decide
   whether to offset-tune away from it.
+- **The one unexplained 100 MHz pass.** One live run out of six on an FM
+  broadcast generated instead of being rejected; the retune-glitch
+  hypothesis is in STATUS.md. Keep an eye out once the M2 spectrum makes
+  the passband visible.
 
 ### 1.4 Measurements that go into STATUS.md
 
-This is the actual deliverable of M1 — numbers, not code:
+This is the actual deliverable of M1 — numbers, not code. Most of it was
+measured 2026-08-19 and lives in STATUS.md: min-entropy across gains at
+1300 MHz plus the FM contrast case, serial/I/Q on real samples (the 0.05
+thresholds hold — empty-channel hardware measures ≤0.005 in the engine's
+own arithmetic, a carrier 0.12–0.18), and wall-clock (a block is ~64 ms;
+no progress bar needed).
 
-- Measured min-entropy per sample at several frequencies (1300 MHz default,
-  plus a deliberately bad choice like an FM broadcast channel for contrast)
-  and at several gains, including gain 0.
-- Serial and I/Q correlation on real samples. **The thresholds of 0.05 in
-  `rnkg-health.h` were chosen against synthetic uniform noise.** Real
-  hardware may sit closer to them. If real thermal noise trips them, the
-  threshold is wrong, not the hardware — but find out which before changing
-  a number that exists to catch a carrier.
-- How the program behaves when the dongle is pulled mid-collection.
+Still to do:
+
+- How the program behaves when the dongle is pulled mid-collection — needs
+  a hand on the hardware.
 - A capture through the NIST reference tool
   ([SP800-90B_EntropyAssessment](https://github.com/usnistgov/SP800-90B_EntropyAssessment)),
   its min-entropy estimate next to ours. They should be close, and ours
   should be the lower of the two after the credit margin.
-- Wall-clock time to collect enough for a 256-bit key, so the GUI knows
-  whether it needs a progress bar or just a spinner.
 
 ---
 

@@ -35,6 +35,14 @@ G_BEGIN_DECLS
  * repetition count at 1 + ceil(20/0.3) = 68 samples (~33 us of stream). */
 #define RNKG_ASSESSED_H 0.3
 
+/* SP 800-90B §4.3: a fixed run of samples must pass the health tests before
+ * any output is produced, and those samples are not themselves used.  M0
+ * satisfied this only by accident of RNKG_BLOCK_BYTES being the first thing
+ * read; it is a named quantity now, so resizing blocks later cannot
+ * silently shrink the startup test with it.  One full block — 262144
+ * samples — sits far above the standard's floor. */
+#define RNKG_STARTUP_SAMPLES (256 * 1024)
+
 typedef struct {
   guint64      blocks;
   guint64      bytes;
@@ -42,6 +50,8 @@ typedef struct {
   double       target_bits;
   RnkgEstimate last_estimate;
   RnkgStructure last_structure;
+  gboolean     startup_block;  /* the block just read fed the §4.3 startup
+                                * test and was discarded, not credited */
 } RnkgProgress;
 
 typedef struct _RnkgCollector RnkgCollector;
