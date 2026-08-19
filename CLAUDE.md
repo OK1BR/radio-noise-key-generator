@@ -16,17 +16,17 @@ What is left to build: `docs/SCOPE.md` — the working list, milestone by
 milestone, including the traps already hit here. Status and handover:
 `docs/STATUS.md` — what is verified and what is explicitly not.
 
-**Status (2026-08-19): M1 done, 4/4 gates green (23 tests), live
-generation from the dongle verified (RTL-SDR Blog V4, 1300 MHz).** Real
-hardware measures 0.62–0.84 bits/sample, not the >4 M0 assumed —
-`RNKG_ASSESSED_H` is 0.3 now; see `docs/STATUS.md` for the measurements.
-Warm-up discard, §4.3 startup test and the read watchdog are in; the DC
-spike is measured (no offset tuning), the NIST-tool cross-check passed
-(halved credit under the full suite's minimum on both operating points),
-and a mid-collection dongle pull ends the run cleanly. Loose ends noted
-in STATUS.md: the watchdog's timeout path is unverified (needs a silently
-wedged device) and one 100 MHz run passed unexplained. Next: M2, the GTK4
-front end — the live spectrum first (SCOPE 2.2 needs an FFT decision).
+**Status (2026-08-19 end of day): M0+M1 done, M2 essentially done, 5/5
+gates green (27 tests), everything pushed.** The window is specified in
+SPEC §8 (Richard's design: spectrum strip, one status line, generation
+panel with live rotation + Snap; settings behind the family hamburger;
+GKeyFile persistence). The CLI has the scriptable snap (`--snap` on
+stdin newline/EOF, `--snap-after SEC`) and defaults length/alphabet from
+the shared ini (command line > ini > built-in). Real hardware measures
+0.62–0.84 bits/sample — `RNKG_ASSESSED_H` is 0.3; measurements, the NIST
+cross-check and the open loose ends (100 MHz one-off pass, watchdog
+timeout path) are in `docs/STATUS.md`. Next: M3 packaging, only on
+Richard's go.
 
 Public repo: https://github.com/OK1BR/radio-noise-key-generator — commit
 and push continuously as work lands (Richard asked for this 2026-08-19);

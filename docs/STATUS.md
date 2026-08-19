@@ -1,5 +1,32 @@
 # Status
 
+## 2026-08-19 end of day — where this stands, for the next session
+
+M0 + M1 done, M2 essentially done. The window matches SPEC §8 after
+several rounds of Richard's feedback (spectrum strip with block-mean DC
+removal and an axis that follows the noise, one status line, generation
+panel with live rotation + Snap, hamburger with Settings/About, GKeyFile
+persistence in ~/.config incl. save-on-change). The CLI grew the
+scriptable snap (`--snap` on stdin newline/EOF, `--snap-after SEC`) and
+defaults its length/alphabet from the same ini the GUI writes
+(command line > ini > built-in). 5/5 gates, 27 tests, everything pushed
+to https://github.com/OK1BR/radio-noise-key-generator.
+
+**Open, in rough order for next time:**
+
+- **M3 packaging** — icon (Papirus style), .desktop, metainfo, AUR;
+  SCOPE says only when Richard asks. The About dialog already points at
+  the app-id icon name.
+- The one unexplained 100 MHz pass (see below); watch during spectrum
+  work.
+- Watchdog timeout path still unverified (needs a silently wedged
+  device).
+- SPEC §7 open questions: diceware mode, pass-store hand-off, capture
+  export, more §6.3 estimators.
+- Cosmetic: GTK 4.22 prints GtkImage baseline warnings on stderr with
+  the About dialog open; upstream noise, not ours, but check again after
+  a GTK update.
+
 ## 2026-08-19 — M2 begun: the live spectrum works
 
 The FFT decision fell to a plain radix-2 written into the engine
