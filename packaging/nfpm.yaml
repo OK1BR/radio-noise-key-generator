@@ -48,16 +48,16 @@ contents:
 
 overrides:
   deb:
-    # Ubuntu 24.04+ / Debian 13+ (the t64 names post 64-bit time_t transition)
+    # Ubuntu 26.04+ (the t64 names post 64-bit time_t transition)
     depends:
-      - libc6 (>= 2.39)
+      - libc6 (>= 2.43)
       - libgtk-4-1
       - libadwaita-1-0 (>= 1.5)
       - libglib2.0-0t64
       - libgcrypt20
       - librtlsdr2
   rpm:
-    # Fedora 41+ — F40 still ships librtlsdr 0.6 (librtlsdr.so.0), the
+    # Fedora 44+ — F40 still ships librtlsdr 0.6 (librtlsdr.so.0), the
     # binary needs the 2.x soname; the container install-test proved it.
     depends:
       - gtk4
